@@ -90,7 +90,11 @@ interface HubActions {
   connectConnector: (connectorId: ConnectorId) => void;
   disconnectConnector: (connectorId: ConnectorId) => void;
   completeOnboarding: () => void;
-  addMessage: (role: "user" | "assistant", content: string) => void;
+  addMessage: (
+    role: "user" | "assistant",
+    content: string,
+    channel?: "chat" | "voice" | "video",
+  ) => void;
   setEmotion: (emotion: AvatarEmotion) => void;
   addActivity: (activity: Omit<ActivityItem, "id" | "timestamp">) => void;
   addSkill: (trigger: string, action: string) => void;
@@ -182,7 +186,7 @@ export const useHubStore = create<HubState & HubActions>()(
         }
       },
 
-      addMessage: (role, content) =>
+      addMessage: (role, content, channel = "chat") =>
         set((state) => ({
           messages: [
             ...state.messages,
@@ -190,6 +194,7 @@ export const useHubStore = create<HubState & HubActions>()(
               id: generateId(),
               role,
               content,
+              channel,
               timestamp: new Date().toISOString(),
             },
           ],

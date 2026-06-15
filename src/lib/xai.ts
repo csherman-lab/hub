@@ -23,7 +23,7 @@ export async function grokChat(params: {
         ...params.messages,
       ],
       temperature: 0.7,
-      max_tokens: 600,
+      max_tokens: 220,
     }),
   });
 

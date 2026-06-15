@@ -13,19 +13,24 @@ export function ChatView() {
     selectedAvatarId,
     agentName,
     messages,
+    goals,
+    proactivity,
+    autonomy,
     addMessage,
     setEmotion,
-    addActivity,
   } = useHubStore();
 
   const avatar = getAvatarById(selectedAvatarId);
+  const chatMessages = messages.filter(
+    (m) => !m.channel || m.channel === "chat",
+  );
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatMessages, loading]);
 
   if (!avatar) return null;
 
@@ -34,9 +39,14 @@ export function ChatView() {
     if (!text || loading) return;
 
     setInput("");
-    addMessage("user", text);
+    addMessage("user", text, "chat");
     setLoading(true);
     setEmotion("thinking");
+
+    const history = [
+      ...chatMessages.slice(-10),
+      { role: "user" as const, content: text },
+    ];
 
     try {
       const res = await fetch("/api/chat", {
@@ -46,21 +56,25 @@ export function ChatView() {
           message: text,
           personality: avatar.personality,
           agentName: agentName || avatar.name,
-          history: messages.slice(-10),
+          history,
+          goals,
+          proactivity,
+          autonomy,
         }),
       });
 
       const data = await res.json();
-      addMessage("assistant", data.reply);
-      setEmotion(data.emotion || "happy");
-
-      if (data.activity) {
-        addActivity(data.activity);
+      if (!res.ok || !data.reply) {
+        throw new Error(data.error || "No reply");
       }
+
+      addMessage("assistant", data.reply, "chat");
+      setEmotion(data.emotion || "happy");
     } catch {
       addMessage(
         "assistant",
-        "I'm having trouble connecting right now. Add XAI_API_KEY to .env.local and restart the server.",
+        "I'm having trouble connecting right now. Check XAI_API_KEY in .env.local and restart the server.",
+        "chat",
       );
       setEmotion("empathetic");
     } finally {
@@ -79,7 +93,7 @@ export function ChatView() {
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
-        {messages.length === 0 && (
+        {chatMessages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <AvatarDisplay avatar={avatar} size="md" emotion="happy" />
             <p className="mt-4 text-lg font-medium">
@@ -92,7 +106,7 @@ export function ChatView() {
         )}
 
         <div className="mx-auto max-w-2xl space-y-4">
-          {messages.map((msg) => (
+          {chatMessages.map((msg) => (
             <div
               key={msg.id}
               className={cn(
@@ -102,13 +116,13 @@ export function ChatView() {
             >
               <div
                 className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                  "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
                   msg.role === "user"
                     ? "bg-blue-500 text-white"
                     : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100",
                 )}
               >
-                {msg.content}
+                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
               </div>
             </div>
           ))}
@@ -137,7 +151,7 @@ export function ChatView() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
             placeholder="Message your agent..."
             className="flex-1 rounded-full border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800"
           />

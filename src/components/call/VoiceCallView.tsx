@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
 import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 
 export function VoiceCallView() {
-  const { selectedAvatarId, agentName, setEmotion, addMessage, messages } =
+  const { selectedAvatarId, agentName, setEmotion, addMessage, messages, goals, proactivity, autonomy } =
     useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
@@ -36,7 +37,11 @@ export function VoiceCallView() {
       if (!avatar) return;
       setStatus("Thinking...");
       setEmotion("thinking");
-      addMessage("user", userText);
+      addMessage("user", userText, "voice");
+
+      const voiceHistory = messages
+        .filter((m) => m.channel === "voice" || m.channel === "chat")
+        .slice(-6);
 
       try {
         const res = await fetch("/api/chat", {
@@ -46,12 +51,16 @@ export function VoiceCallView() {
             message: userText,
             personality: avatar.personality,
             agentName: agentName || avatar.name,
-            history: messages.slice(-6),
+            history: [...voiceHistory, { role: "user", content: userText }],
+            goals,
+            proactivity,
+            autonomy,
           }),
         });
         const data = await res.json();
-        const reply = data.reply || "I'm here to help.";
-        addMessage("assistant", reply);
+        if (!res.ok || !data.reply) throw new Error("chat failed");
+        const reply = data.reply;
+        addMessage("assistant", reply, "voice");
         setEmotion(data.emotion || "happy");
         setSpeaking(true);
         setStatus("Speaking...");
@@ -65,7 +74,7 @@ export function VoiceCallView() {
         setEmotion("empathetic");
       }
     },
-    [avatar, agentName, messages, addMessage, setEmotion],
+    [avatar, agentName, messages, goals, proactivity, autonomy, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
@@ -111,11 +120,12 @@ export function VoiceCallView() {
         </p>
       </div>
 
-      <AvatarDisplay
+      <LiveAvatar
         avatar={avatar}
         size="hero"
         emotion={speaking ? "happy" : listening ? "thinking" : "neutral"}
         speaking={speaking}
+        listening={listening}
         lipSyncLevel={lipLevel}
       />
 

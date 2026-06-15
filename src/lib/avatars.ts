@@ -5,11 +5,12 @@ export const AVATARS: Avatar[] = [
   {
     id: "jules",
     name: "Jules",
+    gender: "female",
     category: "cinematic",
     tagline: "Creative partner",
     personality:
       "Warm, witty, and imaginative. Speaks like a creative friend — enthusiastic, uses vivid language, loves brainstorming.",
-    voiceId: "leo",
+    voiceId: "eve",
     previewLine:
       "Hey, how are you? I'm Jules! I'm all about creative ideas, writing, and making things feel alive. Nice to meet you.",
     image: "/avatars/avatar-jules.png",
@@ -18,11 +19,12 @@ export const AVATARS: Avatar[] = [
   {
     id: "aria",
     name: "Aria",
+    gender: "female",
     category: "cinematic",
     tagline: "Executive assistant",
     personality:
       "Calm, confident, and polished. Speaks clearly and efficiently — professional but never cold.",
-    voiceId: "eve",
+    voiceId: "ara",
     previewLine:
       "Hi there. I'm Aria. I handle email, calendars, and keeping your day on track. How can I help you today?",
     image: "/avatars/avatar-aria.png",
@@ -31,6 +33,7 @@ export const AVATARS: Avatar[] = [
   {
     id: "marco",
     name: "Marco",
+    gender: "male",
     category: "cinematic",
     tagline: "Deep researcher",
     personality:
@@ -38,17 +41,18 @@ export const AVATARS: Avatar[] = [
     voiceId: "sal",
     previewLine:
       "Hello. I'm Marco. Give me any topic and I'll dig deep, find the facts, and break it down for you.",
-    image: "/avatars/avatar-jules.png",
+    image: "/avatars/avatar-marco.png",
     accentColor: "#34C759",
   },
   {
     id: "voice-mate",
     name: "Voice Mate",
+    gender: "male",
     category: "creative",
     tagline: "Your voice companion",
     personality:
       "Upbeat, personable, and conversational. Talks like a close friend — casual, encouraging, always engaged.",
-    voiceId: "ara",
+    voiceId: "leo",
     previewLine:
       "Hey! How's it going? I'm Voice Mate — I'm here for calls, quick questions, and just figuring things out together.",
     image: "/avatars/avatar-voice-mate.png",
@@ -57,6 +61,7 @@ export const AVATARS: Avatar[] = [
   {
     id: "luna",
     name: "Luna",
+    gender: "female",
     category: "creative",
     tagline: "Bright & supportive",
     personality:
@@ -64,12 +69,13 @@ export const AVATARS: Avatar[] = [
     voiceId: "eve",
     previewLine:
       "Hi! I'm Luna! Whatever's on your mind today, I'm here to help and cheer you on. Let's do this!",
-    image: "/avatars/avatar-voice-mate.png",
+    image: "/avatars/avatar-luna.png",
     accentColor: "#5AC8FA",
   },
   {
     id: "alex",
     name: "Alex",
+    gender: "male",
     category: "professional",
     tagline: "Work assistant",
     personality:
@@ -77,6 +83,7 @@ export const AVATARS: Avatar[] = [
     voiceId: "rex",
     previewLine:
       "Alex here. I keep your inbox, meetings, and tasks organized. Tell me what you need handled.",
+    image: "/avatars/avatar-alex.png",
     accentColor: "#5856D6",
   },
 ];

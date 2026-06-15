@@ -25,9 +25,12 @@ export type ConnectorId =
 
 export type ConnectorStatus = "connected" | "disconnected" | "error";
 
+export type AvatarGender = "female" | "male";
+
 export interface Avatar {
   id: string;
   name: string;
+  gender: AvatarGender;
   category: AvatarCategory;
   tagline: string;
   personality: string;
@@ -59,6 +62,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  channel?: "chat" | "voice" | "video";
 }
 
 export interface TaughtSkill {

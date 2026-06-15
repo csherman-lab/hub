@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getXaiApiKey, grokChat } from "@/lib/xai";
-import type { AvatarEmotion } from "@/types";
+import { parseGrokJson, sanitizeReply } from "@/lib/chat-utils";
+import type { AvatarEmotion, AutonomyLevel, ProactivityMode } from "@/types";
 
 const MOCK_REPLIES = [
   {
@@ -36,10 +37,27 @@ function mockResponse(message: string) {
   };
 }
 
+function behaviorHint(proactivity?: ProactivityMode, autonomy?: AutonomyLevel) {
+  const parts: string[] = [];
+  if (proactivity === "proactive") parts.push("Be proactive and suggest next steps.");
+  if (proactivity === "reactive") parts.push("Only respond to what is asked.");
+  if (autonomy === "suggest") parts.push("Suggest actions but never imply you already did them.");
+  if (autonomy === "autopilot") parts.push("You may act decisively when appropriate.");
+  return parts.join(" ");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, personality, agentName, history } = body;
+    const {
+      message,
+      personality,
+      agentName,
+      history,
+      goals,
+      proactivity,
+      autonomy,
+    } = body;
     const apiKey = getXaiApiKey();
 
     if (!message) {
@@ -48,14 +66,28 @@ export async function POST(req: NextRequest) {
 
     if (!apiKey) {
       const mock = mockResponse(message);
-      return NextResponse.json({ reply: mock.reply, emotion: mock.emotion, mode: "mock" });
+      return NextResponse.json({
+        reply: mock.reply,
+        emotion: mock.emotion,
+        mode: "mock",
+      });
     }
+
+    const goalsLine =
+      goals?.length > 0 ? `User goals: ${goals.join(", ")}.` : "";
 
     const systemPrompt = `You are ${agentName || "an AI assistant"} on Hub.
 ${personality || ""}
-You help users manage email, calendar, research, and daily tasks.
-Keep responses concise (1-3 sentences), warm, and in character.
-Respond ONLY with valid JSON: {"reply": "your message", "emotion": "happy|neutral|thinking|surprised|empathetic"}`;
+${goalsLine}
+${behaviorHint(proactivity, autonomy)}
+
+Rules:
+- Reply in plain conversational text inside the JSON "reply" field only.
+- ONE short paragraph maximum. Never repeat the same sentence twice.
+- No bullet lists unless the user explicitly asks.
+- Stay in character.
+
+Respond ONLY with valid JSON: {"reply":"your message","emotion":"happy|neutral|thinking|surprised|empathetic"}`;
 
     const messages = [
       ...(history || []).map((m: { role: string; content: string }) => ({
@@ -68,15 +100,17 @@ Respond ONLY with valid JSON: {"reply": "your message", "emotion": "happy|neutra
     const content = await grokChat({ apiKey, systemPrompt, messages });
 
     try {
-      const parsed = JSON.parse(content);
+      const parsed = parseGrokJson<{ reply: string; emotion?: AvatarEmotion }>(
+        content,
+      );
       return NextResponse.json({
-        reply: parsed.reply,
+        reply: sanitizeReply(parsed.reply || content),
         emotion: parsed.emotion || "neutral",
         mode: "grok",
       });
     } catch {
       return NextResponse.json({
-        reply: content,
+        reply: sanitizeReply(content),
         emotion: "neutral",
         mode: "grok",
       });

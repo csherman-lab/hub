@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
@@ -9,8 +9,16 @@ import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 import type { AvatarEmotion } from "@/types";
 
 export function VideoCallView() {
-  const { selectedAvatarId, agentName, setEmotion, addMessage, messages } =
-    useHubStore();
+  const {
+    selectedAvatarId,
+    agentName,
+    setEmotion,
+    addMessage,
+    messages,
+    goals,
+    proactivity,
+    autonomy,
+  } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
@@ -62,7 +70,11 @@ export function VideoCallView() {
       setStatus("Thinking...");
       setLocalEmotion("thinking");
       setEmotion("thinking");
-      addMessage("user", userText);
+      addMessage("user", userText, "video");
+
+      const videoHistory = messages
+        .filter((m) => m.channel === "video" || m.channel === "chat")
+        .slice(-6);
 
       try {
         const res = await fetch("/api/chat", {
@@ -72,12 +84,16 @@ export function VideoCallView() {
             message: userText,
             personality: avatar.personality,
             agentName: agentName || avatar.name,
-            history: messages.slice(-6),
+            history: [...videoHistory, { role: "user", content: userText }],
+            goals,
+            proactivity,
+            autonomy,
           }),
         });
         const data = await res.json();
-        const reply = data.reply || "I'm here to help.";
-        addMessage("assistant", reply);
+        if (!res.ok || !data.reply) throw new Error("chat failed");
+        const reply = data.reply;
+        addMessage("assistant", reply, "video");
         const em = (data.emotion as AvatarEmotion) || "happy";
         setLocalEmotion(em);
         setEmotion(em);
@@ -93,7 +109,7 @@ export function VideoCallView() {
         setStatus("Error — try again");
       }
     },
-    [avatar, agentName, messages, addMessage, setEmotion],
+    [avatar, agentName, messages, goals, proactivity, autonomy, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
@@ -153,11 +169,12 @@ export function VideoCallView() {
             </div>
           )}
           <div className={screenSharing ? "opacity-0" : ""}>
-            <AvatarDisplay
+            <LiveAvatar
               avatar={avatar}
               size="hero"
               emotion={emotion}
               speaking={speaking}
+              listening={listening}
               lipSyncLevel={lipLevel}
             />
           </div>
