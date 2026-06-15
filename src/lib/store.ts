@@ -224,6 +224,14 @@ export const useHubStore = create<HubState & HubActions>()(
 
       resetHub: () => set(initialState),
     }),
-    { name: "hub-storage" },
+    {
+      name: "hub-storage",
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.warn("Hub storage reset:", error);
+          localStorage.removeItem("hub-storage");
+        }
+      },
+    },
   ),
 );

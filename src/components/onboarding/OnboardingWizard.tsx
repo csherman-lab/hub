@@ -18,6 +18,7 @@ import { AvatarPicker } from "@/components/avatar/AvatarPicker";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
+import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 import type { AutonomyLevel, ProactivityMode } from "@/types";
 
 const GOALS = [
@@ -50,13 +51,15 @@ export function OnboardingWizard() {
     completeOnboarding,
   } = useHubStore();
 
+  const hydrated = useStoreHydrated();
   const avatar = getAvatarById(selectedAvatarId);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (onboardingComplete) {
       router.replace("/dashboard");
     }
-  }, [onboardingComplete, router]);
+  }, [hydrated, onboardingComplete, router]);
 
   const toggleGoal = (id: string) => {
     if (id === "everything") {
