@@ -6,8 +6,7 @@ A web-first platform for creating personalized AI agents with expressive cartoon
 
 ```bash
 npm install
-cp .env.example .env.local
-# Add XAI_API_KEY=xai-... to .env.local
+npm run setup:env   # creates .env.local and opens it — add XAI_API_KEY=xai-...
 npm run dev
 ```
 

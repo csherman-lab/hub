@@ -7,15 +7,18 @@ Follow this to run Hub locally with Grok chat and voice.
 ## Part 1: Open the app
 
 ```bash
-git clone https://github.com/csherman-lab/hub.git
-cd hub
-git checkout cursor/hub-platform-draft-fb1d   # or main after merge
 npm install
-cp .env.example .env.local
+npm run setup:env   # creates .env.local and opens it
 npm run dev
 ```
 
 Open **http://localhost:3000/onboarding** in Chrome or Safari.
+
+Or manually:
+
+```bash
+cp .env.example .env.local
+```
 
 Without an API key you still get onboarding, the dashboard, and mock chat. Add your xAI key for live Grok chat and voice.
 
@@ -29,7 +32,7 @@ Hub uses **xAI Grok** for chat, knowledge, and voice. Add your key once in `.env
 cp .env.example .env.local
 ```
 
-Edit `.env.local`:
+Edit `.env.local` (or run `npm run setup:env` to create and open it):
 
 ```env
 XAI_API_KEY=xai-your-key-here
@@ -138,8 +141,8 @@ Go to **Connectors → Connect Gmail**.
 
 **Fastest path — live Grok chat & voice:**
 
-1. `npm install && cp .env.example .env.local`
-2. Add `XAI_API_KEY=xai-...` to `.env.local`
+1. `npm install && npm run setup:env`
+2. Add `XAI_API_KEY=xai-...` in the file that opens, save, close
 3. `npm run dev`
 4. Complete onboarding — hover avatars to hear their voice
 5. Try **Chat**, **Voice call**, or **Video call**

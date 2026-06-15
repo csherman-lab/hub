@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "clean": "rm -rf .next",
-    "fresh": "bash scripts/fresh-install.sh"
+    "fresh": "bash scripts/fresh-install.sh",
+    "setup:env": "bash scripts/setup-env.sh"
   },
   "dependencies": {
     "clsx": "^2.1.1",
