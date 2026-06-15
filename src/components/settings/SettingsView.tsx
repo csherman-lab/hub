@@ -18,6 +18,8 @@ export function SettingsView() {
     setAutonomy,
     setTheme,
     resetHub,
+    memories,
+    removeMemory,
   } = useHubStore();
 
   const avatar = getAvatarById(selectedAvatarId);
@@ -107,6 +109,32 @@ export function SettingsView() {
           </div>
         </div>
       </section>
+
+      {memories.length > 0 && (
+        <section className="rounded-2xl border border-[var(--hub-border)] bg-white p-5 dark:bg-zinc-900">
+          <h2 className="mb-3 font-medium">Agent memory</h2>
+          <p className="mb-3 text-sm text-zinc-500">
+            Facts your agent remembers from conversations.
+          </p>
+          <ul className="space-y-2">
+            {memories.map((m, i) => (
+              <li
+                key={i}
+                className="flex items-start justify-between gap-2 rounded-xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-800"
+              >
+                <span>{m}</span>
+                <button
+                  type="button"
+                  onClick={() => removeMemory(i)}
+                  className="shrink-0 text-xs text-zinc-400 hover:text-red-500"
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-900/50 dark:bg-red-950/20">
         <h2 className="font-medium text-red-700 dark:text-red-400">Reset</h2>

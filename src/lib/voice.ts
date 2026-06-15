@@ -31,11 +31,18 @@ export function stopSpeaking() {
   stopLipSyncTracking();
   if (currentAudio) {
     currentAudio.pause();
+    currentAudio.currentTime = 0;
     currentAudio = null;
   }
   if (typeof window !== "undefined" && window.speechSynthesis) {
     window.speechSynthesis.cancel();
   }
+}
+
+export function isSpeaking(): boolean {
+  if (currentAudio && !currentAudio.paused) return true;
+  if (typeof window !== "undefined" && window.speechSynthesis?.speaking) return true;
+  return false;
 }
 
 export async function speakWithGrok(

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
@@ -9,8 +8,19 @@ import { useHubStore } from "@/lib/store";
 import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 
 export function VoiceCallView() {
-  const { selectedAvatarId, agentName, setEmotion, addMessage, messages, goals, proactivity, autonomy } =
-    useHubStore();
+  const {
+    selectedAvatarId,
+    agentName,
+    setEmotion,
+    addMessage,
+    messages,
+    goals,
+    skills,
+    memories,
+    proactivity,
+    autonomy,
+    apiKeys,
+  } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
@@ -53,8 +63,11 @@ export function VoiceCallView() {
             agentName: agentName || avatar.name,
             history: [...voiceHistory, { role: "user", content: userText }],
             goals,
+            skills,
+            memories,
             proactivity,
             autonomy,
+            tavilyKey: apiKeys.web_search,
           }),
         });
         const data = await res.json();
@@ -74,7 +87,7 @@ export function VoiceCallView() {
         setEmotion("empathetic");
       }
     },
-    [avatar, agentName, messages, goals, proactivity, autonomy, addMessage, setEmotion],
+    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
@@ -145,7 +158,11 @@ export function VoiceCallView() {
         muted={muted}
         videoOn={false}
         screenSharing={false}
-        onToggleMute={() => setMuted(!muted)}
+        onToggleMute={() => {
+          const next = !muted;
+          setMuted(next);
+          if (next) stopSpeaking();
+        }}
         onToggleVideo={() => {}}
         onToggleScreenShare={() => {}}
         onEndCall={() => {

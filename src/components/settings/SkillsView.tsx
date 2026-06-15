@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { useHubStore } from "@/lib/store";
 
 export function SkillsView() {
-  const { skills, addSkill } = useHubStore();
+  const { skills, addSkill, removeSkill } = useHubStore();
   const [trigger, setTrigger] = useState("");
   const [action, setAction] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -89,6 +89,7 @@ export function SkillsView() {
                 </div>
                 <button
                   type="button"
+                  onClick={() => removeSkill(skill.id)}
                   className="text-zinc-400 hover:text-red-500"
                   aria-label="Delete skill"
                 >

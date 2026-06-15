@@ -1,15 +1,19 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
+  Check,
   CheckCircle2,
   Clock,
   FileText,
   MessageSquare,
   Search,
+  Sun,
   Video,
   Phone,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
@@ -27,8 +31,42 @@ const ACTIVITY_ICONS: Record<ActivityItem["type"], typeof MessageSquare> = {
 };
 
 export function HomeView() {
-  const { selectedAvatarId, agentName, activities } = useHubStore();
+  const {
+    selectedAvatarId,
+    agentName,
+    activities,
+    pendingApprovals,
+    approveItem,
+    dismissApproval,
+    connectConnector,
+  } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
+  const [briefing, setBriefing] = useState<string | null>(null);
+  const [briefingLoading, setBriefingLoading] = useState(true);
+
+  const syncConnectors = useCallback(async () => {
+    try {
+      const res = await fetch("/api/connect/status");
+      const data = await res.json();
+      const connections = data.connections || {};
+      for (const [id, info] of Object.entries(connections)) {
+        if ((info as { connected?: boolean }).connected) {
+          connectConnector(id as Parameters<typeof connectConnector>[0]);
+        }
+      }
+    } catch {
+      /* offline */
+    }
+  }, [connectConnector]);
+
+  useEffect(() => {
+    syncConnectors();
+    fetch("/api/briefing")
+      .then((r) => r.json())
+      .then((d) => setBriefing(d.briefing || null))
+      .catch(() => setBriefing(null))
+      .finally(() => setBriefingLoading(false));
+  }, [syncConnectors]);
 
   if (!avatar) {
     return (
@@ -72,6 +110,60 @@ export function HomeView() {
             </Link>
           </div>
         </div>
+
+        {/* Morning briefing */}
+        <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <Sun className="h-4 w-4 text-amber-500" />
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+              Morning briefing
+            </h2>
+          </div>
+          {briefingLoading ? (
+            <p className="mt-3 text-sm text-zinc-400">Preparing your briefing…</p>
+          ) : (
+            <p className="mt-3 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+              {briefing}
+            </p>
+          )}
+        </div>
+
+        {/* Approvals inbox */}
+        {pendingApprovals.length > 0 && (
+          <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-amber-600">
+              Needs your approval
+            </h2>
+            <div className="space-y-3">
+              {pendingApprovals.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900 dark:bg-amber-950/20"
+                >
+                  <p className="font-medium">{item.title}</p>
+                  <p className="mt-1 text-sm text-zinc-500">{item.detail}</p>
+                  <pre className="mt-3 max-h-32 overflow-auto rounded-xl bg-white p-3 text-xs whitespace-pre-wrap dark:bg-zinc-900">
+                    {item.draft}
+                  </pre>
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" onClick={() => approveItem(item.id)}>
+                      <Check className="h-3.5 w-3.5" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => dismissApproval(item.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500">

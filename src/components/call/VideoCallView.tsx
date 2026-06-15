@@ -16,8 +16,11 @@ export function VideoCallView() {
     addMessage,
     messages,
     goals,
+    skills,
+    memories,
     proactivity,
     autonomy,
+    apiKeys,
   } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
@@ -86,8 +89,11 @@ export function VideoCallView() {
             agentName: agentName || avatar.name,
             history: [...videoHistory, { role: "user", content: userText }],
             goals,
+            skills,
+            memories,
             proactivity,
             autonomy,
+            tavilyKey: apiKeys.web_search,
           }),
         });
         const data = await res.json();
@@ -109,7 +115,7 @@ export function VideoCallView() {
         setStatus("Error — try again");
       }
     },
-    [avatar, agentName, messages, goals, proactivity, autonomy, addMessage, setEmotion],
+    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
@@ -208,7 +214,11 @@ export function VideoCallView() {
         muted={muted}
         videoOn={videoOn}
         screenSharing={screenSharing}
-        onToggleMute={() => setMuted(!muted)}
+        onToggleMute={() => {
+          const next = !muted;
+          setMuted(next);
+          if (next) stopSpeaking();
+        }}
         onToggleVideo={() => setVideoOn(!videoOn)}
         onToggleScreenShare={toggleScreenShare}
         onEndCall={() => {

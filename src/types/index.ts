@@ -72,6 +72,15 @@ export interface TaughtSkill {
   createdAt: string;
 }
 
+export interface PendingApproval {
+  id: string;
+  type: "email" | "calendar" | "other";
+  title: string;
+  detail: string;
+  draft: string;
+  createdAt: string;
+}
+
 export interface HubState {
   onboardingComplete: boolean;
   onboardingStep: number;
@@ -86,5 +95,7 @@ export interface HubState {
   messages: ChatMessage[];
   activities: ActivityItem[];
   skills: TaughtSkill[];
+  memories: string[];
+  pendingApprovals: PendingApproval[];
   currentEmotion: AvatarEmotion;
 }

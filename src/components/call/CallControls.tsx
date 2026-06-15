@@ -2,17 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import {
-  Captions,
-  Hand,
   Mic,
   MicOff,
-  MoreVertical,
   PhoneOff,
   Presentation,
-  Smile,
   Video,
   VideoOff,
-  Volume2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,9 +35,7 @@ export function CallControls({
   const router = useRouter();
 
   return (
-    <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl bg-zinc-900/90 px-3 py-2 shadow-2xl backdrop-blur-xl">
-      <ControlButton icon={Volume2} label="Audio level" active />
-
+    <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-zinc-900/90 px-4 py-2 shadow-2xl backdrop-blur-xl">
       <ControlButton
         icon={muted ? MicOff : Mic}
         label={muted ? "Unmute" : "Mute"}
@@ -58,21 +51,14 @@ export function CallControls({
             active={videoOn}
             onClick={onToggleVideo}
           />
-
           <ControlButton
             icon={Presentation}
             label="Share screen"
             active={screenSharing}
             onClick={onToggleScreenShare}
           />
-
-          <ControlButton icon={Smile} label="Reactions" />
-          <ControlButton icon={Captions} label="Captions" />
-          <ControlButton icon={Hand} label="Raise hand" />
         </>
       )}
-
-      <ControlButton icon={MoreVertical} label="More" />
 
       <button
         type="button"
@@ -80,7 +66,7 @@ export function CallControls({
           onEndCall();
           router.push("/dashboard");
         }}
-        className="ml-2 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white transition-colors hover:bg-red-600"
+        className="ml-1 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white transition-colors hover:bg-red-600"
         aria-label="End call"
       >
         <PhoneOff className="h-5 w-5" />
@@ -109,8 +95,7 @@ function ControlButton({
         "flex h-11 w-11 items-center justify-center rounded-xl transition-colors",
         active
           ? "bg-zinc-700 text-white hover:bg-zinc-600"
-          : "text-zinc-300 hover:bg-zinc-800 hover:text-white",
-        !onClick && "cursor-default",
+          : "bg-red-500/80 text-white hover:bg-red-600",
       )}
     >
       <Icon className="h-5 w-5" />

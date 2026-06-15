@@ -13,6 +13,7 @@ import type {
   ProactivityMode,
   ThemeMode,
   TaughtSkill,
+  PendingApproval,
 } from "@/types";
 import { generateId } from "@/lib/utils";
 
@@ -98,6 +99,13 @@ interface HubActions {
   setEmotion: (emotion: AvatarEmotion) => void;
   addActivity: (activity: Omit<ActivityItem, "id" | "timestamp">) => void;
   addSkill: (trigger: string, action: string) => void;
+  removeSkill: (id: string) => void;
+  addMemory: (text: string) => void;
+  removeMemory: (index: number) => void;
+  addPendingApproval: (item: Omit<PendingApproval, "id" | "createdAt">) => void;
+  approveItem: (id: string) => void;
+  dismissApproval: (id: string) => void;
+  clearChatMessages: () => void;
   resetHub: () => void;
 }
 
@@ -115,6 +123,8 @@ const initialState: HubState = {
   messages: [],
   activities: SEED_ACTIVITIES,
   skills: [],
+  memories: [],
+  pendingApprovals: [],
   currentEmotion: "neutral",
 };
 
@@ -227,10 +237,61 @@ export const useHubStore = create<HubState & HubActions>()(
           ],
         })),
 
+      removeSkill: (id) =>
+        set((state) => ({
+          skills: state.skills.filter((s) => s.id !== id),
+        })),
+
+      addMemory: (text) =>
+        set((state) => ({
+          memories: [...state.memories, text.trim()].slice(-20),
+        })),
+
+      removeMemory: (index) =>
+        set((state) => ({
+          memories: state.memories.filter((_, i) => i !== index),
+        })),
+
+      addPendingApproval: (item) =>
+        set((state) => ({
+          pendingApprovals: [
+            {
+              ...item,
+              id: generateId(),
+              createdAt: new Date().toISOString(),
+            },
+            ...state.pendingApprovals,
+          ],
+        })),
+
+      approveItem: (id) =>
+        set((state) => ({
+          pendingApprovals: state.pendingApprovals.filter((a) => a.id !== id),
+        })),
+
+      dismissApproval: (id) =>
+        set((state) => ({
+          pendingApprovals: state.pendingApprovals.filter((a) => a.id !== id),
+        })),
+
+      clearChatMessages: () =>
+        set((state) => ({
+          messages: state.messages.filter((m) => m.channel && m.channel !== "chat"),
+        })),
+
       resetHub: () => set(initialState),
     }),
     {
       name: "hub-storage",
+      version: 3,
+      migrate: (persisted) => {
+        const state = persisted as HubState;
+        return {
+          ...state,
+          memories: state.memories ?? [],
+          pendingApprovals: state.pendingApprovals ?? [],
+        };
+      },
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.warn("Hub storage reset:", error);
