@@ -170,12 +170,33 @@ Restart `npm run dev`, then **Connectors → Connect Slack**.
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| "Google OAuth is not set up" | Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env.local` and restart |
-| Redirect URI mismatch | Redirect URI in Google Console must exactly match `http://localhost:3000/api/connect/google/callback` |
-| Chat returns mock responses | Add OpenAI key under Connectors → Connect OpenAI |
-| Page won't load | Run `npm install` first, then `npm run dev` |
+### Terminal keeps printing `/api/livereload 404`
+
+That's an old **service worker** or browser extension hitting port 3000 — not Hub. Fix in Chrome:
+
+1. Open http://localhost:3000
+2. Press **Cmd + Option + I** (DevTools)
+3. Go to **Application** tab → **Service Workers**
+4. Click **Unregister** on anything listed for localhost:3000
+5. Under **Storage**, click **Clear site data**
+6. Hard refresh: **Cmd + Shift + R**
+
+Or just use an **Incognito window** → http://localhost:3000/onboarding
+
+### Server shows `✓ Ready` but browser is blank
+
+Go directly to: **http://localhost:3000/onboarding**
+
+### Still broken? Full reset
+
+```bash
+cd ~/hub
+npm run fresh
+npm run dev
+```
+
+Then Incognito → http://localhost:3000/onboarding
+
 
 ---
 
