@@ -35,7 +35,7 @@ export function SkillsView() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-10">
+    <div className="mx-auto max-w-2xl p-4 pb-8 md:p-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Skills</h1>

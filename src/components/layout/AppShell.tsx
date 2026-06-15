@@ -31,6 +31,14 @@ const WORKSPACE_NAV = [
   { href: "/dashboard/connectors", label: "Connectors", icon: Plug },
 ] as const;
 
+const MOBILE_NAV = [
+  { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
+  { href: "/dashboard/call/voice", label: "Voice", icon: Phone },
+  { href: "/dashboard/connectors", label: "Apps", icon: Plug },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+] as const;
+
 function NavLink({
   href,
   label,
@@ -71,14 +79,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const avatar = getAvatarById(selectedAvatarId);
 
   const isCallView = pathname?.includes("/call/");
+  const isChatView = pathname?.startsWith("/dashboard/chat");
+  const isHome = pathname === "/dashboard";
+  const showMobileFab = isHome;
 
   if (isCallView) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f7] pb-16 dark:bg-black md:pb-0">
-      <aside className="hidden w-52 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl dark:bg-zinc-900/60 md:flex">
+    <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-black md:pb-0">
+      <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl dark:bg-zinc-900/60 md:flex">
         <div className="p-4">
           <div className="flex items-center justify-between gap-2">
             <Link href="/dashboard" className="text-base font-semibold tracking-tight">
@@ -93,10 +104,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 size="xs"
                 emotion={currentEmotion}
               />
-              <div>
-                <p className="text-sm font-medium">{agentName || avatar.name}</p>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{agentName || avatar.name}</p>
                 {agentActivity ? (
-                  <p className="text-xs text-blue-500">{agentActivity}</p>
+                  <p className="truncate text-xs text-blue-500">{agentActivity}</p>
                 ) : (
                   <GrokStatusBadge />
                 )}
@@ -105,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <nav className="flex-1 space-y-4 px-3 pb-4">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
           <div className="space-y-0.5">
             <NavLink href="/dashboard" label="Home" icon={Home} pathname={pathname} />
           </div>
@@ -143,25 +154,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </aside>
 
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="hub-main flex-1 overflow-auto">{children}</main>
 
-      <button
-        type="button"
-        onClick={togglePalette}
-        className="fixed bottom-20 right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg md:hidden"
-        aria-label="Open actions"
-      >
-        <Search className="h-5 w-5" />
-      </button>
+      {showMobileFab && (
+        <button
+          type="button"
+          onClick={togglePalette}
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/25 md:hidden"
+          aria-label="Open actions"
+        >
+          <Search className="h-5 w-5" />
+        </button>
+      )}
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-zinc-200 bg-white/90 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/90 md:hidden">
-        {[
-          { href: "/dashboard", label: "Home", icon: Home },
-          ...TALK_NAV,
-          { href: "/dashboard/skills", label: "Skills", icon: Sparkles },
-          { href: "/dashboard/connectors", label: "Apps", icon: Plug },
-        ].map(({ href, label, icon: Icon }) => {
+      <nav className="hub-bottom-nav fixed inset-x-0 bottom-0 z-40 flex border-t border-zinc-200 bg-white/95 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/95 md:hidden">
+        {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/dashboard"
               ? pathname === "/dashboard"
@@ -171,12 +178,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium",
+                "flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium",
                 active ? "text-blue-600" : "text-zinc-500",
               )}
             >
-              <Icon className="h-5 w-5" />
-              {label}
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="truncate">{label}</span>
             </Link>
           );
         })}

@@ -235,7 +235,7 @@ export function ChatView() {
   const statusLine = toolStatus || agentActivity || "Text chat";
 
   return (
-    <div className="flex h-[calc(100vh-0px)] flex-col md:h-screen">
+    <div className="flex h-[calc(100dvh-env(safe-area-inset-bottom))] flex-col md:h-screen">
       <header className="flex items-center justify-between gap-4 border-b border-zinc-200 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="flex items-center gap-4">
           <AvatarDisplay avatar={avatar} size="sm" emotion="neutral" />
@@ -385,7 +385,7 @@ export function ChatView() {
         </div>
       </div>
 
-      <div className="border-t border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="border-t border-zinc-200 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] dark:border-zinc-800 dark:bg-zinc-900 md:pb-4">
         <div className="mx-auto flex max-w-2xl gap-2">
           <input
             type="text"

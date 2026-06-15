@@ -19,18 +19,25 @@ import { AvatarPicker } from "@/components/avatar/AvatarPicker";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
 import { getAvatarById } from "@/lib/avatars";
+import { GOAL_LABELS } from "@/lib/goal-labels";
 import { useHubStore } from "@/lib/store";
 import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 import type { AutonomyLevel, ProactivityMode } from "@/types";
 
-const GOALS = [
-  { id: "email", label: "Email & calendar", icon: Mail },
-  { id: "research", label: "Research", icon: Search },
-  { id: "writing", label: "Writing & drafts", icon: Sparkles },
-  { id: "slack", label: "Work (Slack)", icon: MessageSquare },
-  { id: "life", label: "Personal life", icon: Sparkles },
-  { id: "everything", label: "Everything", icon: Check },
-];
+const GOAL_ICONS: Record<string, typeof Mail> = {
+  email: Mail,
+  research: Search,
+  writing: Sparkles,
+  slack: MessageSquare,
+  life: Sparkles,
+  everything: Check,
+};
+
+const GOALS = Object.entries(GOAL_LABELS).map(([id, label]) => ({
+  id,
+  label,
+  icon: GOAL_ICONS[id] || Sparkles,
+}));
 
 const STEPS = ["Goals", "Avatar", "Behavior", "Connect", "Meet"];
 

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   if (!apiKey) {
     return NextResponse.json({
       briefing:
-        "Add your xAI key to .env.local for a personalized morning briefing.",
+        "Good morning! Connect Grok in Settings to unlock your personalized daily briefing.",
       mode: "mock",
     });
   }

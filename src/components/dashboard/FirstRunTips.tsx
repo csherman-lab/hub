@@ -17,7 +17,7 @@ export function FirstRunTips() {
   if (hasSeenTips) return null;
 
   return (
-    <div className="mx-6 mb-4 rounded-2xl border border-blue-200 bg-blue-50/80 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+    <div className="border-b border-blue-100 bg-blue-50/80 p-4 dark:border-blue-900 dark:bg-blue-950/30">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
           Quick tips

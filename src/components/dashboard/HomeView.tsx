@@ -25,6 +25,7 @@ import { ProactiveSuggestions } from "@/components/dashboard/ProactiveSuggestion
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
 import { useToastStore } from "@/lib/toast-store";
+import { formatGoalLabel } from "@/lib/goal-labels";
 import { cn } from "@/lib/utils";
 import type { ActivityItem, PendingApproval } from "@/types";
 
@@ -138,9 +139,9 @@ export function HomeView() {
   const displayName = agentName || avatar.name;
 
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-10">
-      <FirstRunTips />
+    <div className="mx-auto max-w-3xl p-4 md:p-10">
       <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <FirstRunTips />
         <div className="flex flex-col items-center bg-gradient-to-b from-zinc-50 to-white px-6 py-10 dark:from-zinc-900 dark:to-zinc-900">
           <AvatarDisplay avatar={avatar} size="lg" emotion="happy" />
           <h1 className="mt-6 text-2xl font-semibold">{displayName}</h1>
@@ -156,27 +157,28 @@ export function HomeView() {
                   key={g}
                   className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                 >
-                  {g}
+                  {formatGoalLabel(g)}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/dashboard/chat">
-              <Button size="lg">
+          <div className="mt-8 grid w-full max-w-sm grid-cols-3 gap-2 sm:gap-3">
+            <Link href="/dashboard/chat" className="col-span-1">
+              <Button size="lg" className="w-full">
                 <MessageSquare className="h-5 w-5" />
-                Text
+                <span className="hidden sm:inline">Text</span>
+                <span className="sm:hidden">Text</span>
               </Button>
             </Link>
-            <Link href="/dashboard/call/voice">
-              <Button size="lg" variant="secondary">
+            <Link href="/dashboard/call/voice" className="col-span-1">
+              <Button size="lg" variant="secondary" className="w-full">
                 <Phone className="h-5 w-5" />
-                Call
+                Voice
               </Button>
             </Link>
-            <Link href="/dashboard/call/video">
-              <Button size="lg" variant="secondary">
+            <Link href="/dashboard/call/video" className="col-span-1">
+              <Button size="lg" variant="secondary" className="w-full">
                 <Video className="h-5 w-5" />
                 Video
               </Button>

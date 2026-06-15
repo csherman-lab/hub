@@ -41,7 +41,7 @@ export const AVATARS: Avatar[] = [
     voiceId: "sal",
     previewLine:
       "Hello. I'm Marco. Give me any topic and I'll dig deep, find the facts, and break it down for you.",
-    image: "/avatars/avatar-marco.png",
+    image: undefined,
     accentColor: "#34C759",
   },
   {
@@ -69,7 +69,7 @@ export const AVATARS: Avatar[] = [
     voiceId: "eve",
     previewLine:
       "Hi! I'm Luna! Whatever's on your mind today, I'm here to help and cheer you on. Let's do this!",
-    image: "/avatars/avatar-luna.png",
+    image: undefined,
     accentColor: "#5AC8FA",
   },
   {
@@ -83,7 +83,7 @@ export const AVATARS: Avatar[] = [
     voiceId: "rex",
     previewLine:
       "Alex here. I keep your inbox, meetings, and tasks organized. Tell me what you need handled.",
-    image: "/avatars/avatar-alex.png",
+    image: undefined,
     accentColor: "#5856D6",
   },
 ];

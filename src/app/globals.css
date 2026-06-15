@@ -56,3 +56,18 @@ body {
 .dark ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
+
+/* Mobile: keep content above bottom nav + safe area */
+.hub-main {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .hub-main {
+    padding-bottom: 0;
+  }
+}
+
+.hub-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

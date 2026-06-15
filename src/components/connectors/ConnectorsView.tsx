@@ -132,7 +132,7 @@ export function ConnectorsView() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-6 md:p-10">
+    <div className="mx-auto max-w-2xl p-4 pb-8 md:p-10">
       {toast && (
         <div className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-900 px-5 py-3 text-sm text-white shadow-lg">
           {toast}
