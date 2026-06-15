@@ -20,7 +20,7 @@ const NAV = [
   { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
   { href: "/dashboard/call/video", label: "Video", icon: Video },
   { href: "/dashboard/skills", label: "Skills", icon: Sparkles },
-  { href: "/dashboard/connections", label: "Connections", icon: Plug },
+  { href: "/dashboard/connectors", label: "Connectors", icon: Plug },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

@@ -8,10 +8,13 @@ A web-first platform for creating personalized AI agents with expressive cartoon
 
 ```bash
 npm install
+cp .env.example .env.local   # optional — needed for Gmail/Calendar/Slack OAuth
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and complete onboarding.
+
+**Full setup instructions:** [docs/SETUP.md](docs/SETUP.md)
 
 ## What's included
 
@@ -24,8 +27,9 @@ Open [http://localhost:3000](http://localhost:3000) and complete onboarding.
 | Voice call UI | ✅ UI ready |
 | 8 cartoon avatars across 4 categories | ✅ SVG placeholders |
 | BYOK connections page | ✅ Working |
+| Connectors (tap Connect Gmail, etc.) | ✅ OAuth for Gmail, Calendar, Slack |
 | Plain-English skills | ✅ Working |
-| Gmail / Calendar OAuth | 🔜 Stub |
+| Gmail / Calendar OAuth | ✅ Tap Connect in Connectors |
 | Live voice (OpenAI Realtime) | 🔜 Needs API |
 | 3D avatars with full animation | 🔜 Needs pipeline |
 | Photo-to-avatar | 🔜 Coming soon |

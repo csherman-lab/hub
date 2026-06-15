@@ -118,7 +118,7 @@ export function HomeView() {
               Connected apps
             </h2>
             <Link
-              href="/dashboard/connections"
+              href="/dashboard/connectors"
               className="text-sm text-blue-500 hover:underline"
             >
               Manage
@@ -139,8 +139,8 @@ function ConnectedAppsSummary() {
     return (
       <p className="mt-3 text-sm text-zinc-500">
         No apps connected yet.{" "}
-        <Link href="/dashboard/connections" className="text-blue-500">
-          Add connections
+        <Link href="/dashboard/connectors" className="text-blue-500">
+          Add connectors
         </Link>
       </p>
     );

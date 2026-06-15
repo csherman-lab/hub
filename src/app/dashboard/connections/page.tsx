@@ -1,10 +1,5 @@
-import { AppShell } from "@/components/layout/AppShell";
-import { ConnectionsView } from "@/components/settings/ConnectionsView";
+import { redirect } from "next/navigation";
 
-export default function ConnectionsPage() {
-  return (
-    <AppShell>
-      <ConnectionsView />
-    </AppShell>
-  );
+export default function ConnectionsRedirect() {
+  redirect("/dashboard/connectors");
 }
