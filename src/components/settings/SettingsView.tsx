@@ -12,6 +12,8 @@ export function SettingsView() {
     proactivity,
     autonomy,
     theme,
+    goals,
+    setGoals,
     setSelectedAvatar,
     setAgentName,
     setProactivity,
@@ -70,6 +72,27 @@ export function SettingsView() {
           Tap an avatar to select and hear their voice.
         </p>
         <AvatarPicker selectedId={selectedAvatarId} onSelect={setSelectedAvatar} />
+      </section>
+
+      <section className="rounded-2xl border border-[var(--hub-border)] bg-white p-5 dark:bg-zinc-900">
+        <h2 className="mb-3 font-medium">Goals</h2>
+        <p className="mb-3 text-sm text-zinc-500">
+          What your agent helps you with. Comma-separated.
+        </p>
+        <input
+          type="text"
+          value={goals.join(", ")}
+          onChange={(e) =>
+            setGoals(
+              e.target.value
+                .split(",")
+                .map((g) => g.trim())
+                .filter(Boolean),
+            )
+          }
+          placeholder="email, research, calendar"
+          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800"
+        />
       </section>
 
       <section className="rounded-2xl border border-[var(--hub-border)] bg-white p-5 dark:bg-zinc-900">

@@ -20,6 +20,7 @@ export function applyChatSideEffects(
     addActivity: (a: ActivityInput) => void;
     addMemory: (text: string) => void;
     addPendingApproval: (a: ApprovalInput) => void;
+    onExecuted?: (message: string) => void;
   },
 ) {
   if (data.activity) {
@@ -37,6 +38,49 @@ export function applyChatSideEffects(
       title: ap.title,
       detail: "Waiting for your approval",
       needsApproval: true,
+    });
+  }
+  if (data.executed && typeof data.executed === "string") {
+    actions.onExecuted?.(data.executed);
+    actions.addActivity({
+      type: "draft",
+      title: "Action completed",
+      detail: data.executed,
+    });
+  }
+}
+
+export function applyChatResult(
+  result: {
+    activity?: ActivityInput;
+    memory?: string;
+    approval?: ApprovalInput;
+    executed?: string;
+  },
+  actions: {
+    addActivity: (a: ActivityInput) => void;
+    addMemory: (text: string) => void;
+    addPendingApproval: (a: ApprovalInput) => void;
+    onExecuted?: (message: string) => void;
+  },
+) {
+  if (result.activity) actions.addActivity(result.activity);
+  if (result.memory) actions.addMemory(result.memory);
+  if (result.approval) {
+    actions.addPendingApproval(result.approval);
+    actions.addActivity({
+      type: "draft",
+      title: result.approval.title,
+      detail: "Waiting for your approval",
+      needsApproval: true,
+    });
+  }
+  if (result.executed) {
+    actions.onExecuted?.(result.executed);
+    actions.addActivity({
+      type: "draft",
+      title: "Action completed",
+      detail: result.executed,
     });
   }
 }

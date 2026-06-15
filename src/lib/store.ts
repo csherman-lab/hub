@@ -107,6 +107,7 @@ interface HubActions {
   approveItem: (id: string) => void;
   dismissApproval: (id: string) => void;
   clearChatMessages: () => void;
+  removeLastAssistantMessage: () => string | null;
   setGrokStatus: (status: GrokStatus) => void;
   setHasSeenTips: (seen: boolean) => void;
   setAgentActivity: (activity: string | null) => void;
@@ -285,6 +286,22 @@ export const useHubStore = create<HubState & HubActions>()(
         set((state) => ({
           messages: state.messages.filter((m) => m.channel && m.channel !== "chat"),
         })),
+
+      removeLastAssistantMessage: () => {
+        const msgs = get().messages;
+        const lastAssistantIdx = [...msgs].reverse().findIndex(
+          (m) => m.role === "assistant" && (!m.channel || m.channel === "chat"),
+        );
+        if (lastAssistantIdx === -1) return null;
+        const idx = msgs.length - 1 - lastAssistantIdx;
+        const lastUser = [...msgs.slice(0, idx)].reverse().find(
+          (m) => m.role === "user" && (!m.channel || m.channel === "chat"),
+        );
+        set((state) => ({
+          messages: state.messages.filter((_, i) => i !== idx),
+        }));
+        return lastUser?.content ?? null;
+      },
 
       setGrokStatus: (status) => set({ grokStatus: status }),
       setHasSeenTips: (seen) => set({ hasSeenTips: seen }),

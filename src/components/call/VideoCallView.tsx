@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
-import { applyChatSideEffects } from "@/lib/chat-side-effects";
+import { applyChatResult } from "@/lib/chat-side-effects";
 import { useHubStore } from "@/lib/store";
+import { useToastStore } from "@/lib/toast-store";
 import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 import type { AvatarEmotion } from "@/types";
 
@@ -26,6 +27,7 @@ export function VideoCallView() {
     addMemory,
     addPendingApproval,
   } = useHubStore();
+  const pushToast = useToastStore((s) => s.push);
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
@@ -107,10 +109,11 @@ export function VideoCallView() {
         const em = (data.emotion as AvatarEmotion) || "happy";
         setLocalEmotion(em);
         setEmotion(em);
-        applyChatSideEffects(data, {
+        applyChatResult(data, {
           addActivity,
           addMemory,
           addPendingApproval,
+          onExecuted: (msg) => pushToast(msg, "success"),
         });
         setSpeaking(true);
         setStatus("Speaking...");
@@ -124,7 +127,7 @@ export function VideoCallView() {
         setStatus("Error — try again");
       }
     },
-    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion, addActivity, addMemory, addPendingApproval],
+    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion, addActivity, addMemory, addPendingApproval, pushToast],
   );
 
   const startListening = useCallback(() => {

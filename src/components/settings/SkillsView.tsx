@@ -5,6 +5,21 @@ import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useHubStore } from "@/lib/store";
 
+const PRESET_SKILLS = [
+  {
+    trigger: "weekly recap",
+    action: "Summarize my inbox and calendar for the week and highlight anything urgent.",
+  },
+  {
+    trigger: "before a meeting",
+    action: "Check my calendar for the next meeting and help me prepare talking points.",
+  },
+  {
+    trigger: "email from",
+    action: "Find emails from that person and draft a thoughtful reply.",
+  },
+];
+
 export function SkillsView() {
   const { skills, addSkill, removeSkill } = useHubStore();
   const [trigger, setTrigger] = useState("");
@@ -61,6 +76,26 @@ export function SkillsView() {
             <Button variant="ghost" onClick={() => setShowForm(false)}>
               Cancel
             </Button>
+          </div>
+        </div>
+      )}
+
+      {skills.length === 0 && !showForm && (
+        <div className="mt-6">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
+            Quick add
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {PRESET_SKILLS.map((preset) => (
+              <button
+                key={preset.trigger}
+                type="button"
+                onClick={() => addSkill(preset.trigger, preset.action)}
+                className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600 hover:border-blue-300 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                {preset.trigger}
+              </button>
+            ))}
           </div>
         </div>
       )}

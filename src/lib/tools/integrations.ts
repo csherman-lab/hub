@@ -24,7 +24,14 @@ export async function getGoogleAccessToken(
 
   if (tokens.expiresAt && tokens.expiresAt < Date.now() + 60_000) {
     if (!tokens.refreshToken) return null;
-    return refreshGoogleToken(tokens.refreshToken);
+    const newToken = await refreshGoogleToken(tokens.refreshToken);
+    const { setConnectorTokens } = await import("@/lib/connectors/tokens");
+    await setConnectorTokens(connectorId, {
+      ...tokens,
+      accessToken: newToken,
+      expiresAt: Date.now() + 3500 * 1000,
+    });
+    return newToken;
   }
 
   return tokens.accessToken;

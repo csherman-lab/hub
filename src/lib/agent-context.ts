@@ -46,11 +46,18 @@ export function buildAgentContext(params: {
   }
   if (params.autonomy === "suggest") {
     sections.push(
-      "Never claim you sent email or booked meetings — only draft or suggest.",
+      "Always use draft_email or draft_calendar_event tools for outbound actions. Never claim you sent or booked without a tool.",
+    );
+  }
+  if (params.autonomy === "balanced") {
+    sections.push(
+      "Use draft tools for emails and calendar events. The user approves before anything is sent or booked.",
     );
   }
   if (params.autonomy === "autopilot") {
-    sections.push("You may describe actions you would take automatically.");
+    sections.push(
+      "In autopilot mode, draft_email and draft_calendar_event will execute immediately after creation.",
+    );
   }
 
   return sections.join("\n\n");

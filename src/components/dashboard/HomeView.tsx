@@ -145,6 +145,18 @@ export function HomeView() {
             <span className="text-zinc-300 dark:text-zinc-600">·</span>
             <span>{avatar.tagline}</span>
           </p>
+          {goals.length > 0 && (
+            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+              {goals.map((g) => (
+                <span
+                  key={g}
+                  className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/dashboard/chat">

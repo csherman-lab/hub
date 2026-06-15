@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { runChat } from "@/lib/chat-handler";
+import { runChatStream } from "@/lib/chat-handler";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -15,22 +15,11 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const result = await runChat(body);
-        const words = result.reply.split(" ");
-        for (let i = 0; i < words.length; i++) {
-          const chunk = (i === 0 ? "" : " ") + words[i];
+        for await (const event of runChatStream(body)) {
           controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "token", text: chunk })}\n\n`,
-            ),
+            encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
           );
-          await new Promise((r) => setTimeout(r, 28));
         }
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "done", ...result })}\n\n`,
-          ),
-        );
       } catch (e) {
         controller.enqueue(
           encoder.encode(
