@@ -17,15 +17,10 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
     if (!onboardingComplete && !pathname?.startsWith("/onboarding")) {
       router.replace("/onboarding");
-      return;
     }
+  }, [hydrated, onboardingComplete, pathname, router]);
 
-    if (onboardingComplete && !selectedAvatarId && pathname?.startsWith("/dashboard")) {
-      router.replace("/onboarding");
-    }
-  }, [hydrated, onboardingComplete, selectedAvatarId, pathname, router]);
-
-  // Hard fallback if client routing gets stuck (seen on some Chrome profiles)
+  // Hard fallback if client routing gets stuck
   useEffect(() => {
     if (!hydrated) return;
     if (onboardingComplete) return;
@@ -42,16 +37,18 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7] dark:bg-black">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f5f5f7] dark:bg-black">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+        <p className="text-sm text-zinc-500">Loading Hub…</p>
       </div>
     );
   }
 
   if (!onboardingComplete) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7] dark:bg-black">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f5f5f7] dark:bg-black">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+        <p className="text-sm text-zinc-500">Taking you to setup…</p>
       </div>
     );
   }
@@ -59,7 +56,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   if (!selectedAvatarId) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f5f5f7] p-6 text-center dark:bg-black">
-        <p className="text-sm text-zinc-500">Finish setup to open your dashboard.</p>
+        <p className="text-sm text-zinc-500">Choose an avatar to finish setup.</p>
         <a href="/onboarding" className="text-sm font-medium text-blue-500 hover:underline">
           Continue onboarding →
         </a>

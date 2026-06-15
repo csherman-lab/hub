@@ -9,6 +9,7 @@ export function useStoreHydrated() {
 
   useEffect(() => {
     const finish = () => setHydrated(true);
+
     const unsub = useHubStore.persist.onFinishHydration(finish);
 
     if (useHubStore.persist.hasHydrated()) {
@@ -17,7 +18,13 @@ export function useStoreHydrated() {
       void useHubStore.persist.rehydrate();
     }
 
-    return unsub;
+    // Never block the UI forever if hydration stalls (private mode, corrupt storage, etc.)
+    const timeout = window.setTimeout(finish, 2000);
+
+    return () => {
+      unsub();
+      window.clearTimeout(timeout);
+    };
   }, []);
 
   return hydrated;

@@ -311,10 +311,10 @@ export const useHubStore = create<HubState & HubActions>()(
     }),
     {
       name: "hub-storage",
-      version: 4,
+      version: 5,
       migrate: (persisted) => {
         const state = persisted as HubState;
-        return {
+        const migrated = {
           ...state,
           memories: state.memories ?? [],
           pendingApprovals: state.pendingApprovals ?? [],
@@ -322,6 +322,12 @@ export const useHubStore = create<HubState & HubActions>()(
           hasSeenTips: state.hasSeenTips ?? false,
           agentActivity: state.agentActivity ?? null,
         };
+        // Repair inconsistent state that caused dashboard ↔ onboarding redirect loops
+        if (migrated.onboardingComplete && !migrated.selectedAvatarId) {
+          migrated.onboardingComplete = false;
+          migrated.onboardingStep = 1;
+        }
+        return migrated;
       },
       onRehydrateStorage: () => (state, error) => {
         if (error) {

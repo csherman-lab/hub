@@ -131,10 +131,14 @@ export function OnboardingWizard() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (onboardingComplete) {
+    if (onboardingComplete && selectedAvatarId) {
       router.replace("/dashboard");
+      return;
     }
-  }, [hydrated, onboardingComplete, router]);
+    if (onboardingComplete && !selectedAvatarId) {
+      setOnboardingStep(1);
+    }
+  }, [hydrated, onboardingComplete, selectedAvatarId, router, setOnboardingStep]);
 
   const toggleGoal = (id: string) => {
     if (id === "everything") {
