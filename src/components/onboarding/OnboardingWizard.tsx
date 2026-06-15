@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -34,6 +34,7 @@ const STEPS = ["Goals", "Avatar", "Behavior", "Connect", "Meet"];
 export function OnboardingWizard() {
   const router = useRouter();
   const {
+    onboardingComplete,
     onboardingStep,
     goals,
     selectedAvatarId,
@@ -53,6 +54,12 @@ export function OnboardingWizard() {
 
   const [localKey, setLocalKey] = useState(apiKeys.openai || "");
   const avatar = getAvatarById(selectedAvatarId);
+
+  useEffect(() => {
+    if (onboardingComplete) {
+      router.replace("/dashboard");
+    }
+  }, [onboardingComplete, router]);
 
   const toggleGoal = (id: string) => {
     if (id === "everything") {
