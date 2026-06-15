@@ -8,7 +8,9 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  Loader2,
   MessageSquare,
+  RefreshCw,
   Search,
   Sun,
   Video,
@@ -17,10 +19,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
+import { FirstRunTips } from "@/components/dashboard/FirstRunTips";
+import { ProactiveSuggestions } from "@/components/dashboard/ProactiveSuggestions";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
+import { useToastStore } from "@/lib/toast-store";
 import { cn } from "@/lib/utils";
-import type { ActivityItem } from "@/types";
+import type { ActivityItem, PendingApproval } from "@/types";
 
 const ACTIVITY_ICONS: Record<ActivityItem["type"], typeof MessageSquare> = {
   draft: FileText,
@@ -34,15 +40,68 @@ export function HomeView() {
   const {
     selectedAvatarId,
     agentName,
+    goals,
+    memories,
     activities,
     pendingApprovals,
     approveItem,
     dismissApproval,
     connectConnector,
+    addActivity,
   } = useHubStore();
+  const pushToast = useToastStore((s) => s.push);
   const avatar = getAvatarById(selectedAvatarId);
   const [briefing, setBriefing] = useState<string | null>(null);
   const [briefingLoading, setBriefingLoading] = useState(true);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const loadBriefing = useCallback(async () => {
+    setBriefingLoading(true);
+    try {
+      const res = await fetch("/api/briefing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentName: agentName || avatar?.name,
+          goals,
+          memories,
+        }),
+      });
+      const d = await res.json();
+      setBriefing(d.briefing || null);
+    } catch {
+      setBriefing(null);
+    } finally {
+      setBriefingLoading(false);
+    }
+  }, [agentName, avatar?.name, goals, memories]);
+
+  const handleApprove = async (item: PendingApproval) => {
+    setApprovingId(item.id);
+    try {
+      const res = await fetch("/api/approvals/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: item.type, draft: item.draft }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        pushToast(data.message || data.error || "Could not execute", "error");
+        return;
+      }
+      approveItem(item.id);
+      addActivity({
+        type: item.type === "calendar" ? "meeting" : "draft",
+        title: item.title,
+        detail: data.message,
+      });
+      pushToast(data.message, "success");
+    } catch {
+      pushToast("Something went wrong. Try again.", "error");
+    } finally {
+      setApprovingId(null);
+    }
+  };
 
   const syncConnectors = useCallback(async () => {
     try {
@@ -61,12 +120,8 @@ export function HomeView() {
 
   useEffect(() => {
     syncConnectors();
-    fetch("/api/briefing")
-      .then((r) => r.json())
-      .then((d) => setBriefing(d.briefing || null))
-      .catch(() => setBriefing(null))
-      .finally(() => setBriefingLoading(false));
-  }, [syncConnectors]);
+    loadBriefing();
+  }, [syncConnectors, loadBriefing]);
 
   if (!avatar) {
     return (
@@ -80,13 +135,15 @@ export function HomeView() {
 
   return (
     <div className="mx-auto max-w-3xl p-6 md:p-10">
+      <FirstRunTips />
       <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col items-center bg-gradient-to-b from-zinc-50 to-white px-6 py-10 dark:from-zinc-900 dark:to-zinc-900">
           <AvatarDisplay avatar={avatar} size="lg" emotion="happy" />
           <h1 className="mt-6 text-2xl font-semibold">{displayName}</h1>
-          <p className="mt-1 flex items-center gap-2 text-sm text-emerald-600">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Online · {avatar.tagline}
+          <p className="mt-1 flex flex-wrap items-center justify-center gap-2 text-sm text-zinc-500">
+            <GrokStatusBadge />
+            <span className="text-zinc-300 dark:text-zinc-600">·</span>
+            <span>{avatar.tagline}</span>
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -113,11 +170,22 @@ export function HomeView() {
 
         {/* Morning briefing */}
         <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Sun className="h-4 w-4 text-amber-500" />
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Morning briefing
-            </h2>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-500" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+                Morning briefing
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={loadBriefing}
+              disabled={briefingLoading}
+              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-50 dark:hover:bg-zinc-800"
+              aria-label="Refresh briefing"
+            >
+              <RefreshCw className={cn("h-4 w-4", briefingLoading && "animate-spin")} />
+            </button>
           </div>
           {briefingLoading ? (
             <p className="mt-3 text-sm text-zinc-400">Preparing your briefing…</p>
@@ -146,9 +214,17 @@ export function HomeView() {
                     {item.draft}
                   </pre>
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" onClick={() => approveItem(item.id)}>
-                      <Check className="h-3.5 w-3.5" />
-                      Approve
+                    <Button
+                      size="sm"
+                      onClick={() => handleApprove(item)}
+                      disabled={approvingId === item.id}
+                    >
+                      {approvingId === item.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Check className="h-3.5 w-3.5" />
+                      )}
+                      Approve & send
                     </Button>
                     <Button
                       size="sm"
@@ -203,6 +279,8 @@ export function HomeView() {
             })}
           </div>
         </div>
+
+        <ProactiveSuggestions />
 
         <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
           <div className="flex items-center justify-between">

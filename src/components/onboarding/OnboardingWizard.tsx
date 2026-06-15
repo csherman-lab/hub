@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Camera,
   Check,
+  Loader2,
   Mail,
   Search,
   MessageSquare,
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { AvatarPicker } from "@/components/avatar/AvatarPicker";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
 import { useStoreHydrated } from "@/hooks/useStoreHydrated";
@@ -31,6 +33,79 @@ const GOALS = [
 ];
 
 const STEPS = ["Goals", "Avatar", "Behavior", "Connect", "Meet"];
+
+function GrokConnectStep() {
+  const [checking, setChecking] = useState(false);
+  const { grokStatus, setGrokStatus, connectConnector, disconnectConnector } =
+    useHubStore();
+
+  const checkGrok = async () => {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/ai/status");
+      const data = await res.json();
+      setGrokStatus({
+        configured: !!data.configured,
+        chat: !!data.chat,
+        voice: !!data.voice,
+      });
+      if (data.configured && data.chat) connectConnector("xai");
+      else disconnectConnector("xai");
+    } catch {
+      setGrokStatus({ configured: false, chat: false, voice: false });
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    checkGrok();
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <h2 className="text-xl font-semibold">Connect Grok AI</h2>
+      <p className="text-sm text-zinc-500">
+        Hub uses your xAI key for chat and voice. Add it once in your project folder.
+      </p>
+
+      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <div>
+          <p className="text-sm font-medium">Connection status</p>
+          <GrokStatusBadge className="mt-1" />
+        </div>
+        <Button variant="secondary" size="sm" onClick={checkGrok} disabled={checking}>
+          {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check again"}
+        </Button>
+      </div>
+
+      {!grokStatus?.chat && (
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-sm font-medium">Setup (one time)</p>
+          <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <li>
+              Run <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">npm run setup:env</code>
+            </li>
+            <li>
+              Add your key:{" "}
+              <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
+                XAI_API_KEY=xai-...
+              </code>
+            </li>
+            <li>Restart the dev server, then tap Check again</li>
+          </ol>
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-900">
+        <p className="text-sm font-medium">Optional connectors</p>
+        <p className="mt-1 text-sm text-zinc-500">
+          Gmail, Calendar, and Slack — add from Connectors after setup.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -242,30 +317,7 @@ export function OnboardingWizard() {
             </div>
           )}
 
-          {onboardingStep === 3 && (
-            <div className="space-y-5">
-              <h2 className="text-xl font-semibold">Connect Grok AI</h2>
-              <p className="text-sm text-zinc-500">
-                Hub uses your xAI key for chat and voice. Add it once in your project folder.
-              </p>
-
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                <p className="text-sm font-medium">Setup (one time)</p>
-                <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  <li>Copy <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">.env.example</code> to <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">.env.local</code></li>
-                  <li>Add your key: <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">XAI_API_KEY=xai-...</code></li>
-                  <li>Restart the dev server</li>
-                </ol>
-              </div>
-
-              <div className="rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-900">
-                <p className="text-sm font-medium">Optional connectors</p>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Gmail, Calendar, and Slack — add from Connectors after setup.
-                </p>
-              </div>
-            </div>
-          )}
+          {onboardingStep === 3 && <GrokConnectStep />}
 
           {onboardingStep === 4 && avatar && (
             <div className="flex flex-col items-center space-y-6 text-center">

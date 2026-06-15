@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
+import { applyChatSideEffects } from "@/lib/chat-side-effects";
 import { useHubStore } from "@/lib/store";
 import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 import type { AvatarEmotion } from "@/types";
@@ -21,6 +22,9 @@ export function VideoCallView() {
     proactivity,
     autonomy,
     apiKeys,
+    addActivity,
+    addMemory,
+    addPendingApproval,
   } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
@@ -103,6 +107,11 @@ export function VideoCallView() {
         const em = (data.emotion as AvatarEmotion) || "happy";
         setLocalEmotion(em);
         setEmotion(em);
+        applyChatSideEffects(data, {
+          addActivity,
+          addMemory,
+          addPendingApproval,
+        });
         setSpeaking(true);
         setStatus("Speaking...");
         await speakWithGrok(reply, avatar.voiceId);
@@ -115,7 +124,7 @@ export function VideoCallView() {
         setStatus("Error — try again");
       }
     },
-    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion],
+    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion, addActivity, addMemory, addPendingApproval],
   );
 
   const startListening = useCallback(() => {

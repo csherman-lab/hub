@@ -103,7 +103,7 @@ export async function searchWeb(
   query: string,
   apiKey?: string,
 ): Promise<string | null> {
-  const key = apiKey || process.env.TAVILY_API_KEY;
+  const key = process.env.TAVILY_API_KEY || apiKey;
   if (!key) return null;
 
   const res = await fetch("https://api.tavily.com/search", {

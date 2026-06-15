@@ -81,6 +81,12 @@ export interface PendingApproval {
   createdAt: string;
 }
 
+export interface GrokStatus {
+  configured: boolean;
+  chat: boolean;
+  voice: boolean;
+}
+
 export interface HubState {
   onboardingComplete: boolean;
   onboardingStep: number;
@@ -98,4 +104,7 @@ export interface HubState {
   memories: string[];
   pendingApprovals: PendingApproval[];
   currentEmotion: AvatarEmotion;
+  grokStatus: GrokStatus | null;
+  hasSeenTips: boolean;
+  agentActivity: string | null;
 }

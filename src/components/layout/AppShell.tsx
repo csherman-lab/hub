@@ -10,11 +10,15 @@ import {
   Plug,
   Settings,
   Video,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
+import { CommandPaletteTrigger } from "@/components/layout/CommandPalette";
+import { useCommandPaletteStore } from "@/lib/command-palette-store";
 
 const TALK_NAV = [
   { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
@@ -61,7 +65,9 @@ function NavLink({
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { selectedAvatarId, agentName } = useHubStore();
+  const { selectedAvatarId, agentName, currentEmotion, agentActivity } =
+    useHubStore();
+  const togglePalette = useCommandPaletteStore((s) => s.toggle);
   const avatar = getAvatarById(selectedAvatarId);
 
   const isCallView = pathname?.includes("/call/");
@@ -74,18 +80,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-[#f5f5f7] pb-16 dark:bg-black md:pb-0">
       <aside className="hidden w-52 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl dark:bg-zinc-900/60 md:flex">
         <div className="p-4">
-          <Link href="/dashboard" className="text-base font-semibold tracking-tight">
-            Hub
-          </Link>
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/dashboard" className="text-base font-semibold tracking-tight">
+              Hub
+            </Link>
+            <CommandPaletteTrigger />
+          </div>
           {avatar && (
             <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-zinc-50 p-2.5 dark:bg-zinc-800/50">
-              <AvatarDisplay avatar={avatar} size="xs" emotion="happy" />
+              <AvatarDisplay
+                avatar={avatar}
+                size="xs"
+                emotion={currentEmotion}
+              />
               <div>
                 <p className="text-sm font-medium">{agentName || avatar.name}</p>
-                <p className="flex items-center gap-1.5 text-xs text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Online
-                </p>
+                {agentActivity ? (
+                  <p className="text-xs text-blue-500">{agentActivity}</p>
+                ) : (
+                  <GrokStatusBadge />
+                )}
               </div>
             </div>
           )}
@@ -131,12 +145,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1 overflow-auto">{children}</main>
 
+      <button
+        type="button"
+        onClick={togglePalette}
+        className="fixed bottom-20 right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg md:hidden"
+        aria-label="Open actions"
+      >
+        <Search className="h-5 w-5" />
+      </button>
+
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-zinc-200 bg-white/90 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/90 md:hidden">
         {[
           { href: "/dashboard", label: "Home", icon: Home },
           ...TALK_NAV,
-          { href: "/dashboard/settings", label: "Settings", icon: Settings },
+          { href: "/dashboard/skills", label: "Skills", icon: Sparkles },
+          { href: "/dashboard/connectors", label: "Apps", icon: Plug },
         ].map(({ href, label, icon: Icon }) => {
           const active =
             href === "/dashboard"

@@ -1,0 +1,18 @@
+{
+  "name": "Hub — Your Personal AI Agent",
+  "short_name": "Hub",
+  "description": "Text, voice, and video chat with your personal AI agent",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#007AFF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/hub.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

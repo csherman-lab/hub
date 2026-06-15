@@ -14,6 +14,7 @@ import type {
   ThemeMode,
   TaughtSkill,
   PendingApproval,
+  GrokStatus,
 } from "@/types";
 import { generateId } from "@/lib/utils";
 
@@ -106,6 +107,9 @@ interface HubActions {
   approveItem: (id: string) => void;
   dismissApproval: (id: string) => void;
   clearChatMessages: () => void;
+  setGrokStatus: (status: GrokStatus) => void;
+  setHasSeenTips: (seen: boolean) => void;
+  setAgentActivity: (activity: string | null) => void;
   resetHub: () => void;
 }
 
@@ -126,6 +130,9 @@ const initialState: HubState = {
   memories: [],
   pendingApprovals: [],
   currentEmotion: "neutral",
+  grokStatus: null,
+  hasSeenTips: false,
+  agentActivity: null,
 };
 
 export const useHubStore = create<HubState & HubActions>()(
@@ -279,17 +286,24 @@ export const useHubStore = create<HubState & HubActions>()(
           messages: state.messages.filter((m) => m.channel && m.channel !== "chat"),
         })),
 
+      setGrokStatus: (status) => set({ grokStatus: status }),
+      setHasSeenTips: (seen) => set({ hasSeenTips: seen }),
+      setAgentActivity: (activity) => set({ agentActivity: activity }),
+
       resetHub: () => set(initialState),
     }),
     {
       name: "hub-storage",
-      version: 3,
+      version: 4,
       migrate: (persisted) => {
         const state = persisted as HubState;
         return {
           ...state,
           memories: state.memories ?? [],
           pendingApprovals: state.pendingApprovals ?? [],
+          grokStatus: state.grokStatus ?? null,
+          hasSeenTips: state.hasSeenTips ?? false,
+          agentActivity: state.agentActivity ?? null,
         };
       },
       onRehydrateStorage: () => (state, error) => {

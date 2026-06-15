@@ -4,6 +4,20 @@ export function getXaiApiKey(override?: string): string | null {
   return override?.trim() || process.env.XAI_API_KEY?.trim() || null;
 }
 
+export async function verifyXaiKey(apiKey: string) {
+  const headers = { Authorization: `Bearer ${apiKey}` };
+
+  const [modelsRes, voicesRes] = await Promise.all([
+    fetch(`${XAI_BASE}/models`, { headers }),
+    fetch(`${XAI_BASE}/tts/voices`, { headers }),
+  ]);
+
+  return {
+    chat: modelsRes.ok,
+    voice: voicesRes.ok,
+  };
+}
+
 export async function grokChat(params: {
   apiKey: string;
   systemPrompt: string;
