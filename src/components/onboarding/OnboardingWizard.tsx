@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -41,18 +41,15 @@ export function OnboardingWizard() {
     agentName,
     proactivity,
     autonomy,
-    apiKeys,
     setOnboardingStep,
     setGoals,
     setSelectedAvatar,
     setAgentName,
     setProactivity,
     setAutonomy,
-    setApiKey,
     completeOnboarding,
   } = useHubStore();
 
-  const [localKey, setLocalKey] = useState(apiKeys.openai || "");
   const avatar = getAvatarById(selectedAvatarId);
 
   useEffect(() => {
@@ -80,16 +77,13 @@ export function OnboardingWizard() {
       case 2:
         return true;
       case 3:
-        return !!localKey.trim();
+        return true;
       default:
         return true;
     }
   };
 
   const handleNext = () => {
-    if (onboardingStep === 3) {
-      setApiKey("openai", localKey);
-    }
     if (onboardingStep < STEPS.length - 1) {
       setOnboardingStep(onboardingStep + 1);
     } else {
@@ -246,38 +240,25 @@ export function OnboardingWizard() {
           )}
 
           {onboardingStep === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Connect your keys & apps</h2>
+            <div className="space-y-5">
+              <h2 className="text-xl font-semibold">Connect Grok AI</h2>
               <p className="text-sm text-zinc-500">
-                Hub uses your API keys to run your agent. Keys are stored locally
-                in this draft — production will encrypt them server-side.
+                Hub uses your xAI key for chat and voice. Add it once in your project folder.
               </p>
 
-              <div>
-                <label className="text-sm font-medium">
-                  OpenAI API Key <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={localKey}
-                  onChange={(e) => setLocalKey(e.target.value)}
-                  placeholder="sk-..."
-                  className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 font-mono text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
-                />
-                <p className="mt-1 text-xs text-zinc-500">
-                  Powers chat, voice, and vision. Get one at platform.openai.com
-                </p>
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="text-sm font-medium">Setup (one time)</p>
+                <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  <li>Copy <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">.env.example</code> to <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">.env.local</code></li>
+                  <li>Add your key: <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">XAI_API_KEY=xai-...</code></li>
+                  <li>Restart the dev server</li>
+                </ol>
               </div>
 
               <div className="rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-900">
-                <p className="text-sm font-medium">Recommended next</p>
-                <ul className="mt-2 space-y-1 text-sm text-zinc-500">
-                  <li>• Gmail — read, draft, and send email</li>
-                  <li>• Google Calendar — schedule meetings</li>
-                  <li>• Web Search — research topics</li>
-                </ul>
-                <p className="mt-2 text-xs text-zinc-400">
-                  You can add these from Connections after setup.
+                <p className="text-sm font-medium">Optional connectors</p>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Gmail, Calendar, and Slack — add from Connectors after setup.
                 </p>
               </div>
             </div>

@@ -20,23 +20,16 @@ const DEFAULT_CONNECTORS: Connector[] = [
   {
     id: "openai",
     name: "OpenAI",
-    description: "Powers chat, voice, and vision",
-    status: "disconnected",
-    required: true,
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    description: "Alternative LLM (Claude)",
+    description: "Optional — alternative LLM",
     status: "disconnected",
     required: false,
   },
   {
     id: "xai",
-    name: "xAI",
-    description: "Grok for chat and voice (coming soon)",
+    name: "xAI / Grok",
+    description: "Powers chat and voice via .env.local",
     status: "disconnected",
-    required: false,
+    required: true,
   },
   {
     id: "gmail",

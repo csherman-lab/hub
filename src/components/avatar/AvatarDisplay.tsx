@@ -1,23 +1,27 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "framer-motion";
 import type { Avatar, AvatarEmotion } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface AvatarDisplayProps {
   avatar: Avatar;
   emotion?: AvatarEmotion;
-  size?: "sm" | "md" | "lg" | "xl" | "hero";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "hero";
   speaking?: boolean;
+  lipSyncLevel?: number;
+  animate?: boolean;
   className?: string;
 }
 
 const SIZE_MAP = {
-  sm: "h-20 w-20",
-  md: "h-36 w-36",
-  lg: "h-56 w-56",
-  xl: "h-[min(65vh,480px)] w-[min(65vh,480px)]",
-  hero: "h-[min(72vh,560px)] w-[min(72vh,560px)]",
+  xs: "h-12 w-12",
+  sm: "h-16 w-16",
+  md: "h-24 w-24",
+  lg: "h-36 w-36",
+  xl: "h-48 w-48",
+  hero: "h-[min(45vh,380px)] w-[min(45vh,380px)]",
 };
 
 export function AvatarDisplay({
@@ -25,64 +29,74 @@ export function AvatarDisplay({
   emotion = "neutral",
   size = "md",
   speaking = false,
+  lipSyncLevel = 0,
+  animate = false,
   className,
 }: AvatarDisplayProps) {
-  if (avatar.image) {
-    return (
-      <div
-        className={cn(
-          "relative flex items-center justify-center",
-          SIZE_MAP[size],
-          className,
-        )}
+  const mouthH = 4 + lipSyncLevel * 14;
+  const mouthW = 10 + lipSyncLevel * 6;
+
+  const inner = avatar.image ? (
+    <div
+      className={cn(
+        "relative h-full w-full overflow-hidden rounded-2xl bg-white shadow-md",
+        speaking && "shadow-lg ring-2 ring-blue-400/30",
+      )}
+    >
+      <motion.div
+        className="relative h-full w-full"
+        animate={
+          animate
+            ? { scale: [1, 1.02, 1], y: [0, -2, 0] }
+            : speaking
+              ? { scale: 1.01 }
+              : {}
+        }
+        transition={
+          animate
+            ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+            : { duration: 0.2 }
+        }
       >
-        <div
+        <Image
+          src={avatar.image}
+          alt={avatar.name}
+          fill
           className={cn(
-            "relative h-full w-full overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)]",
-            speaking && "ring-4 ring-blue-400/40 ring-offset-2",
+            "object-cover object-top transition-all duration-200",
+            emotion === "happy" && "brightness-[1.03]",
           )}
-        >
-          <Image
-            src={avatar.image}
-            alt={avatar.name}
-            fill
-            className={cn(
-              "object-cover object-top transition-transform duration-300",
-              speaking && "scale-[1.02]",
-              emotion === "happy" && "brightness-105",
-            )}
-            sizes="(max-width: 768px) 100vw, 480px"
-            priority={size === "xl" || size === "hero"}
+          sizes="160px"
+        />
+        {/* Lip-sync mouth overlay */}
+        {(speaking || lipSyncLevel > 0.05) && (
+          <div
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-full bg-black/20 blur-[1px]"
+            style={{
+              bottom: size === "hero" || size === "xl" ? "28%" : "30%",
+              width: mouthW,
+              height: mouthH,
+              transition: "width 75ms, height 75ms",
+            }}
           />
-          {speaking && (
-            <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-1 rounded-full bg-black/50 px-3 py-2 backdrop-blur-sm">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-1 rounded-full bg-white"
-                  style={{
-                    animation: `soundwave 0.${5 + i}s ease-in-out infinite alternate`,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+        )}
+      </motion.div>
+    </div>
+  ) : (
+    <div className="flex h-full w-full items-center justify-center rounded-2xl bg-zinc-100">
+      <span className="text-lg font-semibold text-zinc-400">{avatar.name[0]}</span>
+    </div>
+  );
 
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-[2rem] bg-gradient-to-br from-zinc-100 to-zinc-200",
+        "relative flex shrink-0 items-center justify-center",
         SIZE_MAP[size],
         className,
       )}
     >
-      <span className="text-4xl font-semibold text-zinc-400">
-        {avatar.name[0]}
-      </span>
+      {inner}
     </div>
   );
 }

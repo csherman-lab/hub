@@ -1,33 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getXaiApiKey, grokTts } from "@/lib/xai";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voiceId, apiKey } = await req.json();
+    const { text, voiceId } = await req.json();
+    const apiKey = getXaiApiKey();
 
-    if (!text || !apiKey) {
-      return NextResponse.json({ error: "Missing text or API key" }, { status: 400 });
+    if (!text) {
+      return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    const res = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "tts-1",
-        input: text.slice(0, 500),
-        voice: voiceId || "nova",
-      }),
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "XAI_API_KEY not configured in .env.local" },
+        { status: 503 },
+      );
+    }
+
+    const audio = await grokTts({
+      apiKey,
+      text,
+      voiceId: voiceId || "eve",
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      return NextResponse.json({ error: err }, { status: res.status });
-    }
-
-    const audioBuffer = await res.arrayBuffer();
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(audio, {
       headers: { "Content-Type": "audio/mpeg" },
     });
   } catch (error) {

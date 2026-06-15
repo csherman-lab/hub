@@ -2,68 +2,47 @@
 
 A web-first platform for creating personalized AI agents with expressive cartoon avatars. Text, voice call, or video chat with your agent — then connect Gmail, Calendar, Slack, and more to automate work.
 
-**This is a draft / prototype.** Core UI and flows are built; live voice, 3D avatars, and OAuth connectors are stubbed with clear integration points.
-
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env.local   # optional — needed for Gmail/Calendar/Slack OAuth
+cp .env.example .env.local
+# Add XAI_API_KEY=xai-... to .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and complete onboarding.
+Open [http://localhost:3000/onboarding](http://localhost:3000/onboarding) and complete onboarding.
 
-**Full setup instructions:** [docs/SETUP.md](docs/SETUP.md)
+**Full setup:** [docs/SETUP.md](docs/SETUP.md)
 
 ## What's included
 
 | Feature | Status |
 |---------|--------|
-| Onboarding wizard (goals, avatar, behavior, API key) | ✅ Working |
+| Onboarding wizard (goals, avatar, behavior, connect) | ✅ Working |
+| Animated avatar picker with Grok voice preview | ✅ Working |
 | Dashboard with activity feed | ✅ Working |
-| Text chat (OpenAI when key provided, mock otherwise) | ✅ Working |
-| Video call UI (avatar + user PiP + controls + screen share) | ✅ UI ready |
-| Voice call UI | ✅ UI ready |
-| 8 cartoon avatars across 4 categories | ✅ SVG placeholders |
-| BYOK connections page | ✅ Working |
-| Connectors (tap Connect Gmail, etc.) | ✅ OAuth for Gmail, Calendar, Slack |
+| Text chat (Grok when key in `.env.local`, mock otherwise) | ✅ Working |
+| Voice call with Grok TTS + lip-sync | ✅ Working |
+| Video call with avatar lip-sync + camera PiP | ✅ Working |
+| 6 avatars across 3 categories | ✅ Working |
+| Connectors (Gmail, Calendar, Slack OAuth) | ✅ OAuth ready |
 | Plain-English skills | ✅ Working |
-| Gmail / Calendar OAuth | ✅ Tap Connect in Connectors |
-| Live voice (OpenAI Realtime) | 🔜 Needs API |
-| 3D avatars with full animation | 🔜 Needs pipeline |
-| Photo-to-avatar | 🔜 Coming soon |
+| OpenAI Realtime (sub-second voice) | 🔜 Future |
+| 3D avatars with blendshapes | 🔜 Future |
+| Photo-to-avatar | 🔜 Future |
 
-## Project structure
+## API keys
 
-```
-src/
-  app/                    # Next.js routes
-  components/
-    avatar/               # Avatar display & picker
-    call/                 # Video & voice call views
-    chat/                 # Text chat
-    dashboard/            # Home view
-    onboarding/           # Setup wizard
-    settings/             # Connections, skills, settings
-  lib/
-    avatars.ts            # Avatar catalog
-    store.ts              # Zustand state (persisted)
-  types/                  # TypeScript types
-docs/
-  API_REQUIREMENTS.md     # What APIs you need and why
+**Required for live AI:**
+
+```env
+XAI_API_KEY=xai-...
 ```
 
-## API keys you need
+Get your key at [console.x.ai](https://console.x.ai). Add it to `.env.local` — never commit it.
 
-See **[docs/API_REQUIREMENTS.md](docs/API_REQUIREMENTS.md)** for the full breakdown.
-
-**Minimum to get chat working:**
-- OpenAI API key → [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-
-**Recommended next:**
-- Google Cloud OAuth (Gmail + Calendar)
-- Tavily API key (web search)
+See **[docs/API_REQUIREMENTS.md](docs/API_REQUIREMENTS.md)** for optional connectors (Google, Slack, Tavily, etc.).
 
 ## Tech stack
 
@@ -71,13 +50,24 @@ See **[docs/API_REQUIREMENTS.md](docs/API_REQUIREMENTS.md)** for the full breakd
 - **React 19** + TypeScript
 - **Tailwind CSS 4**
 - **Zustand** (client state)
-- **Framer Motion** (onboarding animations)
+- **Framer Motion** (animations)
+- **xAI Grok** (chat + TTS)
 
-## Roadmap
+## Project structure
 
-1. OpenAI Realtime API for live voice + video conversations
-2. Google OAuth for Gmail and Calendar
-3. Production 3D avatar pipeline (Ready Player Me or custom GLB models)
-4. Photo-to-cartoon-avatar generation
-5. Telegram + Slack channel integrations
-6. Server-side encrypted key storage
+```
+src/
+  app/api/          # Chat, voice, OAuth routes
+  components/
+    avatar/         # Display, picker, lip-sync
+    call/           # Voice & video call views
+    chat/           # Text chat
+    connectors/     # Tap-to-connect UI
+  lib/
+    xai.ts          # Grok chat + TTS client
+    avatars.ts      # Avatar catalog + voice IDs
+    voice.ts        # Browser audio + lip-sync
+docs/
+  SETUP.md
+  API_REQUIREMENTS.md
+```

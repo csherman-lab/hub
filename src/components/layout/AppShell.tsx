@@ -37,14 +37,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-black">
-      <aside className="hidden w-60 flex-col border-r border-[var(--hub-border)] bg-white/70 backdrop-blur-2xl dark:bg-zinc-900/70 md:flex">
-        <div className="p-5">
-          <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
+      <aside className="hidden w-48 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl dark:bg-zinc-900/60 md:flex">
+        <div className="p-4">
+          <Link href="/dashboard" className="text-base font-semibold tracking-tight">
             Hub
           </Link>
           {avatar && (
-            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
-              <AvatarDisplay avatar={avatar} size="sm" emotion="happy" />
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-zinc-50 p-2.5 dark:bg-zinc-800/50">
+              <AvatarDisplay avatar={avatar} size="xs" emotion="happy" />
               <div>
                 <p className="text-sm font-medium">{agentName || avatar.name}</p>
                 <p className="flex items-center gap-1.5 text-xs text-emerald-600">

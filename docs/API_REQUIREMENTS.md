@@ -8,17 +8,52 @@ This document lists every API and service you need to provide for Hub to work en
 
 | Priority | Service | What it powers | Get it here |
 |----------|---------|----------------|-------------|
-| **1 (required)** | OpenAI | Chat, voice, vision, emotions | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **1 (required)** | xAI / Grok | Chat, knowledge, voice (TTS) | [console.x.ai](https://console.x.ai) |
 | **2** | Google Cloud OAuth | Gmail + Calendar | [console.cloud.google.com](https://console.cloud.google.com/apis/credentials) |
 | **3** | Tavily (or Brave Search) | Web research | [tavily.com](https://tavily.com) |
 | **4** | Slack App | Work messaging channel | [api.slack.com/apps](https://api.slack.com/apps) |
 | **5** | Telegram Bot | Personal messaging channel | [@BotFather](https://t.me/BotFather) |
-| **6** | ElevenLabs (optional) | Premium avatar voices | [elevenlabs.io](https://elevenlabs.io) |
-| **7** | Ready Player Me (optional) | 3D avatar models | [readyplayer.me](https://readyplayer.me) |
+| **6** | OpenAI (optional) | Alternative LLM, future Realtime voice | [platform.openai.com](https://platform.openai.com/api-keys) |
 
 ---
 
-## 1. LLM — OpenAI (required for live AI)
+## 1. LLM & Voice — xAI / Grok (required for live AI)
+
+**Used for:** Text chat, avatar voice previews, voice/video call responses, personality-driven replies.
+
+### What you need
+- **API Key** from [console.x.ai](https://console.x.ai)
+
+### APIs used
+
+| Feature | xAI API | Notes |
+|---------|---------|-------|
+| Text chat | `POST /v1/chat/completions` | Model: `grok-3-mini` |
+| Avatar voice | `POST /v1/tts` | Voice IDs: `leo`, `eve`, `sal`, `ara`, `rex` |
+| Lip-sync | Client-side audio analyser | Driven by TTS audio playback |
+
+### Keys / env vars
+```env
+# .env.local (never commit)
+XAI_API_KEY=xai-...
+```
+
+### Voice IDs per avatar (Hub defaults)
+
+| Avatar | Grok voice_id |
+|--------|---------------|
+| Jules | `leo` |
+| Aria | `eve` |
+| Marco | `sal` |
+| Voice Mate | `ara` |
+| Luna | `eve` |
+| Alex | `rex` |
+
+List all voices: `GET https://api.x.ai/v1/tts/voices`
+
+---
+
+## 2. LLM — OpenAI (optional, future)
 
 **Used for:** Text chat, voice conversation, vision (seeing user camera / screen share), emotion detection.
 

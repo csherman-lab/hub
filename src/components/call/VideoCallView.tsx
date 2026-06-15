@@ -5,18 +5,12 @@ import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
-import { speakWithOpenAI, stopSpeaking } from "@/lib/voice";
+import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 import type { AvatarEmotion } from "@/types";
 
 export function VideoCallView() {
-  const {
-    selectedAvatarId,
-    agentName,
-    apiKeys,
-    setEmotion,
-    addMessage,
-    messages,
-  } = useHubStore();
+  const { selectedAvatarId, agentName, setEmotion, addMessage, messages } =
+    useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
@@ -24,8 +18,9 @@ export function VideoCallView() {
   const [screenSharing, setScreenSharing] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
+  const [lipLevel, setLipLevel] = useState(0);
   const [emotion, setLocalEmotion] = useState<AvatarEmotion>("happy");
-  const [status, setStatus] = useState("Connecting camera...");
+  const [status, setStatus] = useState("Starting camera...");
   const [cameraError, setCameraError] = useState(false);
 
   const userVideoRef = useRef<HTMLVideoElement>(null);
@@ -38,25 +33,20 @@ export function VideoCallView() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: !muted,
+        audio: true,
       });
       streamRef.current = stream;
-      if (userVideoRef.current) {
-        userVideoRef.current.srcObject = stream;
-      }
+      if (userVideoRef.current) userVideoRef.current.srcObject = stream;
       setCameraError(false);
-      setStatus("Connected — tap Talk to speak with your agent");
-      setEmotion("happy");
-      setLocalEmotion("happy");
+      setStatus("Tap Talk to speak");
     } catch {
       setCameraError(true);
-      setStatus("Camera unavailable — avatar-only mode");
-      setEmotion("empathetic");
-      setLocalEmotion("empathetic");
+      setStatus("Camera off — avatar only");
     }
-  }, [setEmotion, muted]);
+  }, []);
 
   useEffect(() => {
+    onLipSync(setLipLevel);
     startCamera();
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -80,7 +70,6 @@ export function VideoCallView() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userText,
-            apiKey: apiKeys.openai,
             personality: avatar.personality,
             agentName: agentName || avatar.name,
             history: messages.slice(-6),
@@ -94,51 +83,43 @@ export function VideoCallView() {
         setEmotion(em);
         setSpeaking(true);
         setStatus("Speaking...");
-        await speakWithOpenAI(reply, avatar.voiceId, apiKeys.openai);
+        await speakWithGrok(reply, avatar.voiceId);
         setSpeaking(false);
+        setLipLevel(0);
         setStatus("Tap Talk to continue");
         setLocalEmotion("happy");
         setEmotion("happy");
       } catch {
-        setStatus("Something went wrong. Try again.");
-        setLocalEmotion("empathetic");
+        setStatus("Error — try again");
       }
     },
-    [avatar, agentName, apiKeys.openai, messages, addMessage, setEmotion],
+    [avatar, agentName, messages, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
     if (speaking || muted) return;
-
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setStatus("Speech recognition needs Chrome or Safari.");
+      setStatus("Use Chrome for voice.");
       return;
     }
-
     stopSpeaking();
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.interimResults = false;
     recognitionRef.current = recognition;
-
     recognition.onstart = () => {
       setListening(true);
       setStatus("Listening...");
-      setLocalEmotion("neutral");
     };
-
-    recognition.onresult = (event) => {
+    recognition.onresult = (e) => {
       setListening(false);
-      handleAgentReply(event.results[0][0].transcript);
+      handleAgentReply(e.results[0][0].transcript);
     };
-
     recognition.onerror = () => {
       setListening(false);
-      setStatus("Didn't catch that. Try again.");
+      setStatus("Try again");
     };
-
     recognition.onend = () => setListening(false);
     recognition.start();
   }, [speaking, muted, handleAgentReply]);
@@ -146,18 +127,15 @@ export function VideoCallView() {
   const toggleScreenShare = async () => {
     if (screenSharing) {
       screenStreamRef.current?.getTracks().forEach((t) => t.stop());
-      screenStreamRef.current = null;
       setScreenSharing(false);
       return;
     }
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-      });
-      screenStreamRef.current = screenStream;
-      if (screenRef.current) screenRef.current.srcObject = screenStream;
+      const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenStreamRef.current = s;
+      if (screenRef.current) screenRef.current.srcObject = s;
       setScreenSharing(true);
-      screenStream.getVideoTracks()[0].onended = () => setScreenSharing(false);
+      s.getVideoTracks()[0].onended = () => setScreenSharing(false);
     } catch {
       /* cancelled */
     }
@@ -167,67 +145,44 @@ export function VideoCallView() {
 
   return (
     <div className="relative flex h-screen flex-col bg-zinc-950">
-      <div className="flex flex-1 items-center justify-center p-6 pb-28">
-        <div className="relative w-full max-w-4xl">
+      <div className="flex flex-1 items-center justify-center p-4 pb-24">
+        <div className="relative w-full max-w-3xl">
           {screenSharing && (
-            <div className="absolute inset-0 z-10 overflow-hidden rounded-3xl">
-              <video
-                ref={screenRef}
-                autoPlay
-                playsInline
-                muted
-                className="h-full w-full bg-black object-contain"
-              />
-              <div className="absolute left-4 top-4 rounded-lg bg-black/60 px-3 py-1 text-xs text-white">
-                Screen sharing
-              </div>
+            <div className="absolute inset-0 z-10 overflow-hidden rounded-2xl">
+              <video ref={screenRef} autoPlay playsInline muted className="h-full w-full object-contain bg-black" />
             </div>
           )}
-
-          <div
-            className={`flex items-center justify-center transition-opacity ${
-              screenSharing ? "opacity-0" : "opacity-100"
-            }`}
-          >
+          <div className={screenSharing ? "opacity-0" : ""}>
             <AvatarDisplay
               avatar={avatar}
               size="hero"
               emotion={emotion}
               speaking={speaking}
+              lipSyncLevel={lipLevel}
             />
           </div>
         </div>
       </div>
 
-      <div className="absolute left-6 top-6 z-10">
-        <p className="text-lg font-medium text-white">
-          {agentName || avatar.name}
-        </p>
-        <p className="text-sm text-zinc-400">{status}</p>
+      <div className="absolute left-5 top-5 z-10 text-white">
+        <p className="font-medium">{agentName || avatar.name}</p>
+        <p className="text-xs text-zinc-400">{status}</p>
       </div>
 
       <button
         type="button"
         onClick={startListening}
         disabled={speaking || muted}
-        className="absolute left-1/2 top-20 z-10 -translate-x-1/2 rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur-md transition-colors hover:bg-white/20 disabled:opacity-50"
+        className="absolute left-1/2 top-16 z-10 -translate-x-1/2 rounded-full bg-white/15 px-4 py-1.5 text-sm text-white backdrop-blur-md hover:bg-white/25 disabled:opacity-50"
       >
-        {listening ? "Listening..." : speaking ? "Speaking..." : "Talk"}
+        {listening ? "Listening..." : speaking ? "..." : "Talk"}
       </button>
 
-      <div className="absolute bottom-28 right-6 z-10 h-36 w-28 overflow-hidden rounded-2xl border-2 border-white/20 bg-zinc-800 shadow-2xl sm:h-44 sm:w-36">
-        {videoOn && !cameraError && streamRef.current ? (
-          <video
-            ref={userVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="h-full w-full object-cover"
-          />
+      <div className="absolute bottom-24 right-4 z-10 h-28 w-20 overflow-hidden rounded-xl border border-white/20 bg-zinc-900 sm:h-32 sm:w-24">
+        {videoOn && !cameraError ? (
+          <video ref={userVideoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-zinc-500">
-            {cameraError ? "No camera" : "Camera off"}
-          </div>
+          <div className="flex h-full items-center justify-center text-[10px] text-zinc-500">Camera off</div>
         )}
       </div>
 

@@ -7,7 +7,7 @@ export interface ConnectorMeta {
   name: string;
   description: string;
   required: boolean;
-  connectType: "oauth" | "api_key";
+  connectType: "oauth" | "api_key" | "env";
   brandColor: string;
   icon: string;
   setupUrl: string;
@@ -16,10 +16,21 @@ export interface ConnectorMeta {
 
 export const CONNECTOR_META: ConnectorMeta[] = [
   {
+    id: "xai",
+    name: "xAI / Grok",
+    description: "Powers chat, knowledge, and voice",
+    required: true,
+    connectType: "env",
+    brandColor: "#1DA1F2",
+    icon: "openai",
+    setupUrl: "https://console.x.ai",
+    keyLabel: "XAI_API_KEY",
+  },
+  {
     id: "openai",
     name: "OpenAI",
-    description: "Powers chat, voice, and vision",
-    required: true,
+    description: "Optional — alternative LLM and Realtime voice",
+    required: false,
     connectType: "api_key",
     brandColor: "#10A37F",
     icon: "openai",
@@ -87,17 +98,6 @@ export const CONNECTOR_META: ConnectorMeta[] = [
     brandColor: "#D97757",
     icon: "anthropic",
     setupUrl: "https://console.anthropic.com/settings/keys",
-    keyLabel: "API Key",
-  },
-  {
-    id: "xai",
-    name: "xAI",
-    description: "Grok voice and chat (coming soon)",
-    required: false,
-    connectType: "api_key",
-    brandColor: "#1DA1F2",
-    icon: "openai",
-    setupUrl: "https://console.x.ai",
     keyLabel: "API Key",
   },
 ];

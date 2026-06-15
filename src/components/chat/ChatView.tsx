@@ -13,7 +13,6 @@ export function ChatView() {
     selectedAvatarId,
     agentName,
     messages,
-    apiKeys,
     addMessage,
     setEmotion,
     addActivity,
@@ -45,7 +44,6 @@ export function ChatView() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
-          apiKey: apiKeys.openai,
           personality: avatar.personality,
           agentName: agentName || avatar.name,
           history: messages.slice(-10),
@@ -62,7 +60,7 @@ export function ChatView() {
     } catch {
       addMessage(
         "assistant",
-        "I'm having trouble connecting right now. Check your API key in Connections.",
+        "I'm having trouble connecting right now. Add XAI_API_KEY to .env.local and restart the server.",
       );
       setEmotion("empathetic");
     } finally {

@@ -34,7 +34,7 @@ export function ConnectorsView() {
   const [keyInput, setKeyInput] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [accountInfo, setAccountInfo] = useState<
-    Record<string, { email?: string; teamName?: string }>
+    Record<string, { connected?: boolean; email?: string; teamName?: string }>
   >({});
 
   const syncStatus = useCallback(async () => {
@@ -88,6 +88,8 @@ export function ConnectorsView() {
     const meta = CONNECTOR_META.find((c) => c.id === id);
     if (!meta) return;
 
+    if (meta.connectType === "env") return;
+
     if (meta.connectType === "oauth") {
       const route = OAUTH_ROUTES[id];
       if (route) window.location.href = route;
@@ -122,6 +124,9 @@ export function ConnectorsView() {
   };
 
   const isConnected = (id: ConnectorId) => {
+    if (id === "xai") {
+      return accountInfo.xai?.connected === true;
+    }
     const storeConnector = connectors.find((c) => c.id === id);
     return storeConnector?.status === "connected";
   };
@@ -186,16 +191,20 @@ export function ConnectorsView() {
                   <div className="flex items-center gap-2">
                     <span className="hidden items-center gap-1 text-xs font-medium text-emerald-600 sm:flex">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      Connected
+                      {meta.connectType === "env" ? "Configured" : "Connected"}
                     </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDisconnect(meta.id)}
-                    >
-                      Disconnect
-                    </Button>
+                    {meta.connectType !== "env" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDisconnect(meta.id)}
+                      >
+                        Disconnect
+                      </Button>
+                    )}
                   </div>
+                ) : meta.connectType === "env" ? (
+                  <span className="text-xs text-zinc-500">Add to .env.local</span>
                 ) : (
                   <Button size="sm" onClick={() => handleConnect(meta.id)}>
                     Connect {meta.name.split(" ")[0]}
@@ -260,7 +269,9 @@ export function ConnectorsView() {
       <div className="mt-8 rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-900">
         <h3 className="text-sm font-semibold">Developer setup (one-time)</h3>
         <p className="mt-2 text-sm text-zinc-500">
-          For Gmail, Calendar, and Slack to work, add OAuth credentials to{" "}
+          Add <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">XAI_API_KEY</code>{" "}
+          for Grok chat and voice. For Gmail, Calendar, and Slack, add OAuth
+          credentials to{" "}
           <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
             .env.local
           </code>{" "}

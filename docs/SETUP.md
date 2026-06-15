@@ -1,51 +1,64 @@
 # Hub — Setup Guide
 
-Follow this to run the draft locally and enable tap-to-connect OAuth.
+Follow this to run Hub locally with Grok chat and voice.
 
 ---
 
-## Part 1: Open the draft (no API keys needed)
-
-### If you have the code on your machine
-
-```bash
-cd hub          # folder where the project lives
-npm install
-npm run dev
-```
-
-Open **http://localhost:3000** in Chrome or Safari.
-
-You'll get:
-- Onboarding flow
-- Dashboard with your avatar
-- Text chat (mock responses without a key)
-- Video / voice UI
-- **Connectors** page (sidebar → Connectors)
-
-### If you're using the GitHub repo
+## Part 1: Open the app
 
 ```bash
 git clone https://github.com/csherman-lab/hub.git
 cd hub
 git checkout cursor/hub-platform-draft-fb1d   # or main after merge
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Open **http://localhost:3000**.
+Open **http://localhost:3000/onboarding** in Chrome or Safari.
+
+Without an API key you still get onboarding, the dashboard, and mock chat. Add your xAI key for live Grok chat and voice.
 
 ---
 
-## Part 2: What to give Hub (exact checklist)
+## Part 2: xAI / Grok (required for live AI)
 
-### A. For you as the developer (goes in `.env.local`)
-
-Create a file named `.env.local` in the project root:
+Hub uses **xAI Grok** for chat, knowledge, and voice. Add your key once in `.env.local`:
 
 ```bash
 cp .env.example .env.local
 ```
+
+Edit `.env.local`:
+
+```env
+XAI_API_KEY=xai-your-key-here
+```
+
+Get a key at [console.x.ai](https://console.x.ai).
+
+**Restart the dev server** after saving:
+
+```bash
+# Ctrl+C to stop, then:
+npm run dev
+```
+
+On the **Connectors** page, xAI / Grok should show as **Configured** when the key is loaded.
+
+### What Grok powers
+
+| Feature | API |
+|---------|-----|
+| Text chat | Grok Chat Completions (`grok-3-mini`) |
+| Avatar voice preview | Grok TTS (`/v1/tts`) |
+| Voice & video calls | Grok chat + TTS with lip-sync |
+
+---
+
+## Part 3: Optional connectors
+
+### In `.env.local` (developer setup)
 
 | Variable | Required for | Where to get it |
 |----------|--------------|-----------------|
@@ -54,23 +67,22 @@ cp .env.example .env.local
 | `GOOGLE_CLIENT_SECRET` | Connect Gmail / Calendar | Same place |
 | `SLACK_CLIENT_ID` | Connect Slack | [Slack API Apps](https://api.slack.com/apps) |
 | `SLACK_CLIENT_SECRET` | Connect Slack | Same place |
+| `OPENAI_API_KEY` | Optional fallback LLM | [platform.openai.com](https://platform.openai.com/api-keys) |
 
-**You do NOT put user API keys in `.env.local`** — users add OpenAI etc. in the app under Connectors.
+### In the Connectors UI (per user)
 
-### B. For you as a user testing the app (in the Connectors UI)
-
-| Connector | How to connect | What you need |
-|-----------|----------------|---------------|
-| **OpenAI** | Connectors → Connect OpenAI → paste key | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **Gmail** | Connectors → **Connect Gmail** → Google sign-in | Google account (after you set up OAuth below) |
-| **Google Calendar** | Connectors → **Connect Google Calendar** → sign-in | Same Google Cloud project |
-| **Web Search** | Connectors → Connect Web Search → paste key | [tavily.com](https://tavily.com) |
-| **Slack** | Connectors → **Connect Slack** → authorize | Slack workspace (after you set up Slack app) |
-| **Telegram** | Connectors → Connect Telegram → paste bot token | [@BotFather](https://t.me/BotFather) |
+| Connector | How to connect |
+|-----------|----------------|
+| **Gmail** | Connectors → Connect Gmail → Google sign-in |
+| **Google Calendar** | Connectors → Connect Google Calendar |
+| **Web Search** | Paste Tavily API key |
+| **Slack** | Connectors → Connect Slack |
+| **Telegram** | Paste bot token from [@BotFather](https://t.me/BotFather) |
+| **OpenAI** | Optional — paste key for future Realtime voice |
 
 ---
 
-## Part 3: Google OAuth (for Connect Gmail / Connect Calendar)
+## Part 4: Google OAuth (Gmail & Calendar)
 
 ### Step 1 — Create a Google Cloud project
 
@@ -97,112 +109,73 @@ In **APIs & Services → Library**, enable:
    ```
    http://localhost:3000/api/connect/google/callback
    ```
-4. Copy **Client ID** and **Client secret** into `.env.local`:
-   ```
-   GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your-secret
-   ```
+4. Copy **Client ID** and **Client secret** into `.env.local`
 
 ### Step 5 — Restart and test
 
 ```bash
-# Stop the dev server (Ctrl+C), then:
 npm run dev
 ```
 
-Go to **Connectors → Connect Gmail**. You should see Google's sign-in screen.
+Go to **Connectors → Connect Gmail**.
 
 ---
 
-## Part 4: Slack OAuth (for Connect Slack)
+## Part 5: Slack OAuth
 
-### Step 1 — Create a Slack app
-
-1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App**
-2. Choose **From scratch**, name it "Hub"
-
-### Step 2 — Redirect URL
-
-**OAuth & Permissions → Redirect URLs**, add:
-```
-http://localhost:3000/api/connect/slack/callback
-```
-
-### Step 3 — Scopes
-
-Under **Bot Token Scopes**, add:
-- `channels:history`
-- `chat:write`
-- `im:history`
-- `im:read`
-- `im:write`
-- `users:read`
-
-### Step 4 — Copy credentials
-
-**Basic Information → App Credentials**:
-```
-SLACK_CLIENT_ID=...
-SLACK_CLIENT_SECRET=...
-```
-
-Restart `npm run dev`, then **Connectors → Connect Slack**.
+1. [api.slack.com/apps](https://api.slack.com/apps) → **Create New App**
+2. **OAuth & Permissions → Redirect URLs**:
+   ```
+   http://localhost:3000/api/connect/slack/callback
+   ```
+3. Add Bot Token Scopes: `channels:history`, `chat:write`, `im:history`, `im:read`, `im:write`, `users:read`
+4. Copy `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` to `.env.local`
+5. Restart and use **Connectors → Connect Slack**
 
 ---
 
-## Part 5: Minimum to try today
+## Part 6: Minimum to try today
 
-**Fastest path — chat only:**
+**Fastest path — live Grok chat & voice:**
 
-1. `npm install && npm run dev`
-2. Open http://localhost:3000
-3. Complete onboarding
-4. Connectors → **Connect OpenAI** → paste your `sk-...` key
-5. Go to **Chat** and talk to your agent
+1. `npm install && cp .env.example .env.local`
+2. Add `XAI_API_KEY=xai-...` to `.env.local`
+3. `npm run dev`
+4. Complete onboarding — hover avatars to hear their voice
+5. Try **Chat**, **Voice call**, or **Video call**
 
-**Full connectors path:**
-
-1. Everything above, plus
-2. Set up Google OAuth in `.env.local`
-3. Connectors → **Connect Gmail** and **Connect Google Calendar**
+**Never commit `.env.local` or paste your API key in chat.**
 
 ---
 
 ## Troubleshooting
 
-### Terminal keeps printing `/api/livereload 404`
+### `/api/livereload 404` spam in terminal
 
-That's an old **service worker** or browser extension hitting port 3000 — not Hub. Fix in Chrome:
+That's a browser extension or old service worker — not Hub. Use an **Incognito window** → http://localhost:3000/onboarding
 
-1. Open http://localhost:3000
-2. Press **Cmd + Option + I** (DevTools)
-3. Go to **Application** tab → **Service Workers**
-4. Click **Unregister** on anything listed for localhost:3000
-5. Under **Storage**, click **Clear site data**
-6. Hard refresh: **Cmd + Shift + R**
+### Voice falls back to browser TTS
 
-Or just use an **Incognito window** → http://localhost:3000/onboarding
+Check that `XAI_API_KEY` is set and the server was restarted. Grok TTS returns audio; without a key, Hub uses the browser's built-in speech.
 
 ### Server shows `✓ Ready` but browser is blank
 
 Go directly to: **http://localhost:3000/onboarding**
 
-### Still broken? Full reset
+### Full reset
 
 ```bash
-cd ~/hub
 npm run fresh
 npm run dev
 ```
-
-Then Incognito → http://localhost:3000/onboarding
-
 
 ---
 
 ## Production (later)
 
-When you deploy (e.g. Vercel), update:
+When you deploy (e.g. Vercel):
+
+- Set `XAI_API_KEY` in the hosting provider's environment variables
 - `NEXT_PUBLIC_APP_URL=https://your-domain.com`
-- Google redirect URI: `https://your-domain.com/api/connect/google/callback`
-- Slack redirect URI: `https://your-domain.com/api/connect/slack/callback`
+- Google redirect: `https://your-domain.com/api/connect/google/callback`
+- Slack redirect: `https://your-domain.com/api/connect/slack/callback`

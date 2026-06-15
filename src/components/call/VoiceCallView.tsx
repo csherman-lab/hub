@@ -5,28 +5,24 @@ import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
-import { speakWithOpenAI, stopSpeaking } from "@/lib/voice";
+import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
 
 export function VoiceCallView() {
-  const {
-    selectedAvatarId,
-    agentName,
-    apiKeys,
-    setEmotion,
-    addMessage,
-    messages,
-  } = useHubStore();
+  const { selectedAvatarId, agentName, setEmotion, addMessage, messages } =
+    useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
+  const [lipLevel, setLipLevel] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [status, setStatus] = useState("Tap the mic and start talking");
+  const [status, setStatus] = useState("Tap to talk");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     setEmotion("happy");
+    onLipSync(setLipLevel);
     const interval = setInterval(() => setDuration((d) => d + 1), 1000);
     return () => {
       clearInterval(interval);
@@ -48,7 +44,6 @@ export function VoiceCallView() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userText,
-            apiKey: apiKeys.openai,
             personality: avatar.personality,
             agentName: agentName || avatar.name,
             history: messages.slice(-6),
@@ -60,72 +55,59 @@ export function VoiceCallView() {
         setEmotion(data.emotion || "happy");
         setSpeaking(true);
         setStatus("Speaking...");
-        await speakWithOpenAI(reply, avatar.voiceId, apiKeys.openai);
+        await speakWithGrok(reply, avatar.voiceId);
         setSpeaking(false);
-        setStatus("Tap the mic and start talking");
+        setLipLevel(0);
+        setStatus("Tap to talk");
         setEmotion("happy");
       } catch {
         setStatus("Something went wrong. Try again.");
         setEmotion("empathetic");
       }
     },
-    [avatar, agentName, apiKeys.openai, messages, addMessage, setEmotion],
+    [avatar, agentName, messages, addMessage, setEmotion],
   );
 
   const startListening = useCallback(() => {
     if (muted || speaking) return;
-
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     if (!SpeechRecognition) {
-      setStatus("Speech recognition not supported in this browser. Try Chrome.");
+      setStatus("Use Chrome for voice input.");
       return;
     }
-
     stopSpeaking();
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
-
     recognition.onstart = () => {
       setListening(true);
       setStatus("Listening...");
-      setEmotion("neutral");
     };
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
+    recognition.onresult = (e) => {
       setListening(false);
-      handleAgentReply(transcript);
+      handleAgentReply(e.results[0][0].transcript);
     };
-
     recognition.onerror = () => {
       setListening(false);
-      setStatus("Didn't catch that. Try again.");
+      setStatus("Try again.");
     };
-
     recognition.onend = () => setListening(false);
     recognition.start();
-  }, [muted, speaking, handleAgentReply, setEmotion]);
+  }, [muted, speaking, handleAgentReply]);
 
   if (!avatar) return null;
 
-  const mins = Math.floor(duration / 60)
-    .toString()
-    .padStart(2, "0");
+  const mins = Math.floor(duration / 60).toString().padStart(2, "0");
   const secs = (duration % 60).toString().padStart(2, "0");
 
   return (
     <div className="relative flex h-screen flex-col items-center justify-center bg-[#f5f5f7] dark:bg-zinc-950">
-      <div className="absolute left-6 top-6">
-        <p className="text-lg font-semibold text-zinc-900 dark:text-white">
-          {agentName || avatar.name}
-        </p>
-        <p className="text-sm text-zinc-500">
-          Voice call · {mins}:{secs}
+      <div className="absolute left-5 top-5">
+        <p className="font-semibold">{agentName || avatar.name}</p>
+        <p className="text-xs text-zinc-500">
+          Voice · {mins}:{secs}
         </p>
       </div>
 
@@ -134,21 +116,16 @@ export function VoiceCallView() {
         size="hero"
         emotion={speaking ? "happy" : listening ? "thinking" : "neutral"}
         speaking={speaking}
+        lipSyncLevel={lipLevel}
       />
 
-      <p className="mt-6 max-w-sm text-center text-sm text-zinc-500">{status}</p>
-
-      {!apiKeys.openai && (
-        <p className="mt-2 text-xs text-amber-600">
-          Connect OpenAI in Connectors for natural voice. Using browser voice for now.
-        </p>
-      )}
+      <p className="mt-4 text-sm text-zinc-500">{status}</p>
 
       <button
         type="button"
         onClick={startListening}
         disabled={speaking || muted}
-        className="mt-4 rounded-full bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+        className="mt-3 rounded-full bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
       >
         {listening ? "Listening..." : speaking ? "Speaking..." : "Tap to talk"}
       </button>
