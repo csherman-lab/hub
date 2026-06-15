@@ -8,6 +8,7 @@ const VALID_IDS: ConnectorId[] = [
   "slack",
   "openai",
   "anthropic",
+  "xai",
   "web_search",
   "telegram",
 ];

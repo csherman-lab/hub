@@ -89,6 +89,17 @@ export const CONNECTOR_META: ConnectorMeta[] = [
     setupUrl: "https://console.anthropic.com/settings/keys",
     keyLabel: "API Key",
   },
+  {
+    id: "xai",
+    name: "xAI",
+    description: "Grok voice and chat (coming soon)",
+    required: false,
+    connectType: "api_key",
+    brandColor: "#1DA1F2",
+    icon: "openai",
+    setupUrl: "https://console.x.ai",
+    keyLabel: "API Key",
+  },
 ];
 
 export const GOOGLE_SCOPES: Record<"gmail" | "google_calendar", string[]> = {

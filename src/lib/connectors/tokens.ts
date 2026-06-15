@@ -71,6 +71,7 @@ export async function getConnectionStatus(): Promise<
   const ids: ConnectorId[] = [
     "openai",
     "anthropic",
+    "xai",
     "gmail",
     "google_calendar",
     "web_search",

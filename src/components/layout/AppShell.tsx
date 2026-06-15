@@ -36,14 +36,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <aside className="hidden w-64 flex-col border-r border-zinc-200 bg-white/80 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/80 md:flex">
-        <div className="border-b border-zinc-200 p-6 dark:border-zinc-800">
-          <Link href="/dashboard" className="text-xl font-semibold tracking-tight">
+    <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-black">
+      <aside className="hidden w-60 flex-col border-r border-[var(--hub-border)] bg-white/70 backdrop-blur-2xl dark:bg-zinc-900/70 md:flex">
+        <div className="p-5">
+          <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
             Hub
           </Link>
           {avatar && (
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
               <AvatarDisplay avatar={avatar} size="sm" emotion="happy" />
               <div>
                 <p className="text-sm font-medium">{agentName || avatar.name}</p>
@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-0.5 px-3 pb-4">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active =
               href === "/dashboard"

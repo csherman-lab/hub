@@ -11,6 +11,7 @@ import type {
   ConnectorId,
   HubState,
   ProactivityMode,
+  ThemeMode,
   TaughtSkill,
 } from "@/types";
 import { generateId } from "@/lib/utils";
@@ -26,7 +27,14 @@ const DEFAULT_CONNECTORS: Connector[] = [
   {
     id: "anthropic",
     name: "Anthropic",
-    description: "Alternative LLM provider",
+    description: "Alternative LLM (Claude)",
+    status: "disconnected",
+    required: false,
+  },
+  {
+    id: "xai",
+    name: "xAI",
+    description: "Grok for chat and voice (coming soon)",
     status: "disconnected",
     required: false,
   },
@@ -78,6 +86,7 @@ const SEED_ACTIVITIES: ActivityItem[] = [
 ];
 
 interface HubActions {
+  setTheme: (theme: ThemeMode) => void;
   setOnboardingStep: (step: number) => void;
   setGoals: (goals: string[]) => void;
   setSelectedAvatar: (id: string) => void;
@@ -103,6 +112,7 @@ const initialState: HubState = {
   agentName: "",
   proactivity: "balanced",
   autonomy: "balanced",
+  theme: "light",
   apiKeys: {},
   connectors: DEFAULT_CONNECTORS,
   messages: [],
@@ -117,6 +127,8 @@ export const useHubStore = create<HubState & HubActions>()(
       ...initialState,
 
       setOnboardingStep: (step) => set({ onboardingStep: step }),
+
+      setTheme: (theme) => set({ theme }),
 
       setGoals: (goals) => set({ goals }),
 

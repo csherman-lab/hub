@@ -25,6 +25,10 @@ const CONNECTOR_DOCS: Record<
     setupUrl: "https://console.anthropic.com/settings/keys",
     keyLabel: "API Key",
   },
+  xai: {
+    setupUrl: "https://console.x.ai",
+    keyLabel: "API Key",
+  },
   gmail: {
     setupUrl: "https://console.cloud.google.com/apis/credentials",
     oauth: true,

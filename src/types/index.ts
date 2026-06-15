@@ -1,4 +1,4 @@
-export type AvatarCategory = "executive" | "research" | "creative" | "life";
+export type AvatarCategory = "cinematic" | "creative" | "professional";
 
 export type AvatarEmotion =
   | "neutral"
@@ -7,6 +7,8 @@ export type AvatarEmotion =
   | "surprised"
   | "empathetic";
 
+export type ThemeMode = "light" | "dark" | "system";
+
 export type AutonomyLevel = "suggest" | "balanced" | "autopilot";
 
 export type ProactivityMode = "proactive" | "balanced" | "reactive";
@@ -14,6 +16,7 @@ export type ProactivityMode = "proactive" | "balanced" | "reactive";
 export type ConnectorId =
   | "openai"
   | "anthropic"
+  | "xai"
   | "gmail"
   | "google_calendar"
   | "web_search"
@@ -29,10 +32,8 @@ export interface Avatar {
   tagline: string;
   personality: string;
   voiceId: string;
-  skinTone: string;
-  hairColor: string;
-  accessory?: string;
-  shirtColor: string;
+  previewLine: string;
+  image?: string;
   accentColor: string;
 }
 
@@ -75,6 +76,7 @@ export interface HubState {
   agentName: string;
   proactivity: ProactivityMode;
   autonomy: AutonomyLevel;
+  theme: ThemeMode;
   apiKeys: Partial<Record<ConnectorId, string>>;
   connectors: Connector[];
   messages: ChatMessage[];
