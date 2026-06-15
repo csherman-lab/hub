@@ -68,7 +68,11 @@ export function HomeView() {
         }),
       });
       const d = await res.json();
-      setBriefing(d.briefing || null);
+      const text =
+        typeof d.briefing === "string"
+          ? d.briefing
+          : d.briefing?.content || d.briefing?.reasoning_content || null;
+      setBriefing(text);
     } catch {
       setBriefing(null);
     } finally {

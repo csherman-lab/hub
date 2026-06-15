@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAgentContext } from "@/lib/agent-context";
 import { fetchCalendarSummary, fetchGmailSummary } from "@/lib/tools/integrations";
-import { getXaiApiKey, grokChat } from "@/lib/xai";
+import { getXaiApiKey, grokChat, extractGrokContent } from "@/lib/xai";
 
 export async function POST(req: NextRequest) {
   const apiKey = getXaiApiKey();
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     connectorSummary: [gmail, calendar].filter(Boolean).join("\n\n"),
   });
 
-  const content = await grokChat({
+  const message = await grokChat({
     apiKey,
     systemPrompt: `You are ${agentName || "a personal assistant"} giving a brief, warm morning briefing in 3-4 sentences. Be actionable.\n\n${context}`,
     messages: [
@@ -39,7 +39,11 @@ export async function POST(req: NextRequest) {
     ],
   });
 
-  return NextResponse.json({ briefing: content, mode: "grok" });
+  const briefing =
+    extractGrokContent(message) ||
+    "Good morning! Open chat to plan your day with your agent.";
+
+  return NextResponse.json({ briefing, mode: "grok" });
 }
 
 export async function GET() {

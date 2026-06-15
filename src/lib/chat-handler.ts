@@ -6,6 +6,7 @@ import {
   getXaiApiKey,
   grokChat,
   grokChatStream,
+  extractGrokContent,
   type GrokMessage,
 } from "@/lib/xai";
 import type {
@@ -197,7 +198,7 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
   const { messages, sideEffects } = await runToolLoop(req, apiKey);
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-  let reply = lastAssistant?.content?.trim() || "";
+  let reply = extractGrokContent(lastAssistant);
 
   if (!reply) {
     const systemPrompt = buildSystemPrompt(req);
@@ -206,7 +207,7 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
       systemPrompt,
       messages,
     });
-    reply = streamed.content || "Done.";
+    reply = extractGrokContent(streamed) || "Done.";
   }
 
   return sideEffectsToResult(sideEffects, reply, "grok");
@@ -241,7 +242,7 @@ export async function* runChatStream(req: ChatRequest): AsyncGenerator<StreamEve
     for (const ev of toolEvents) yield ev;
 
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    let fullReply = lastAssistant?.content?.trim() || "";
+    let fullReply = extractGrokContent(lastAssistant);
     const systemPrompt = buildSystemPrompt(req);
 
     if (fullReply) {

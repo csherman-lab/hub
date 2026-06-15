@@ -7,7 +7,9 @@ export function getXaiApiKey(override?: string): string | null {
 
 export interface GrokMessage {
   role: string;
-  content: string | null;
+  content?: string | null;
+  reasoning_content?: string | null;
+  refusal?: string | null;
   tool_calls?: GrokToolCall[];
   tool_call_id?: string;
   name?: string;
@@ -72,6 +74,20 @@ export async function grokChat(params: {
 
   const data = await res.json();
   return data.choices?.[0]?.message as GrokMessage;
+}
+
+/** Pull displayable text from a Grok message (content, reasoning, or string). */
+export function extractGrokContent(
+  message: GrokMessage | string | null | undefined,
+): string {
+  if (!message) return "";
+  if (typeof message === "string") return message;
+  return (
+    message.content?.trim() ||
+    message.reasoning_content?.trim() ||
+    message.refusal?.trim() ||
+    ""
+  );
 }
 
 export async function* grokChatStream(params: {
