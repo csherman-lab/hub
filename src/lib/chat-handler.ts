@@ -28,7 +28,7 @@ const MOCK_REPLIES = [
   {
     keywords: ["meeting", "schedule", "calendar"],
     reply:
-      "Connect Google Calendar and tell me when you're free — I'll help schedule.",
+      "Connect Google Calendar and tell me when you're free, I'll help schedule.",
     emotion: "thinking" as AvatarEmotion,
   },
   {
@@ -98,10 +98,11 @@ ${buildAgentContext({
 })}
 
 You have tools to read Gmail, read Calendar, search the web, remember facts, and create drafts.
-- Use tools when you need live data or to take action.
-- For email/calendar drafts, use draft_email or draft_calendar_event tools — never claim you sent or booked without using those tools.
-- Keep replies concise (1-3 sentences) unless the user asks for detail.
-- Match the user's energy. Be warm and capable.`;
+Use tools when you need live data or to take action.
+For email and calendar drafts, use draft_email or draft_calendar_event tools. Never claim you sent or booked without using those tools.
+Keep replies concise (1 to 3 sentences) unless the user asks for detail.
+Match the user's energy. Be warm and capable.
+Never use dashes or hyphens in replies. Use commas instead.`;
 }
 
 function inferEmotion(reply: string): AvatarEmotion {
@@ -201,7 +202,7 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
     const visionPrompt = `${buildSystemPrompt(req)}
 
 You are on a live video call. You can see the user through their camera in the attached image.
-Describe what you notice naturally when relevant (expression, setting, gestures). Keep replies concise and conversational.`;
+Describe what you notice naturally when relevant (expression, setting, gestures). Keep replies concise and conversational. Never use dashes or hyphens in replies; use commas instead.`;
 
     const response = await grokChat({
       apiKey,

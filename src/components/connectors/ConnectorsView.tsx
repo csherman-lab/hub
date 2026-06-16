@@ -18,7 +18,7 @@ const OAUTH_ROUTES: Partial<Record<ConnectorId, string>> = {
 
 const ERROR_MESSAGES: Record<string, string> = {
   google_not_configured:
-    "Google sign-in isn't available on this Hub yet. The person who set up Hub needs to enable Google once — then you can just click Connect.",
+    "Google sign in isn't available on this Hub yet. The person who set up Hub needs to enable Google once, then you can just click Connect.",
   slack_not_configured:
     "Slack isn't available on this Hub yet. Ask your admin to enable Slack integration.",
   access_denied: "You cancelled the connection.",
@@ -161,7 +161,7 @@ export function ConnectorsView() {
 
       <h1 className="text-2xl font-semibold">Connectors</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Connect Gmail, Calendar, Slack, and more — one tap each. Your Grok brain was set up during onboarding; manage it here if you need to change it.
+        Connect Gmail, Calendar, Slack, and more, one tap each. Your Grok brain was set up during onboarding; manage it here if you need to change it.
       </p>
 
       <div className="mt-8 space-y-3">
@@ -260,7 +260,7 @@ export function ConnectorsView() {
                         >
                           console.x.ai
                         </a>
-                        . Paste it here — no terminal or config files needed.
+                        . Paste it here, no terminal or config files needed.
                       </>
                     ) : (
                       <>

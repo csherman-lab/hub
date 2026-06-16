@@ -29,7 +29,7 @@ export function GrokStatusBadge({ className }: { className?: string }) {
   if (grokStatus.configured) {
     return (
       <span className={cn("text-xs text-amber-600", className)}>
-        Grok key set — verify API
+        Grok key set, verify API
       </span>
     );
   }

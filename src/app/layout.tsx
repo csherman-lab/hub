@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hub — Your Personal AI Agent",
+  title: "Hub, Your Personal AI Agent",
   description:
     "Create your personalized AI agent. Text, call, and video chat with expressive cartoon avatars that help automate your work.",
   manifest: "/manifest.json",

@@ -137,7 +137,7 @@ async function searchWebWithKey(query: string, key: string): Promise<string | nu
   const data = await res.json();
   const answer = data.answer ? `Summary: ${data.answer}\n` : "";
   const results = (data.results || [])
-    .map((r: { title: string; content: string }) => `- ${r.title}: ${r.content?.slice(0, 120)}`)
+    .map((r: { title: string; content: string }) => `• ${r.title}: ${r.content?.slice(0, 120)}`)
     .join("\n");
 
   return `${answer}${results}`.trim() || null;

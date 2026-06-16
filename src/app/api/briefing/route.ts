@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   const message = await grokChat({
     apiKey,
-    systemPrompt: `You are ${agentName || "a personal assistant"} giving a brief, warm morning briefing in 3-4 sentences. Be actionable.\n\n${context}`,
+    systemPrompt: `You are ${agentName || "a personal assistant"} giving a brief, warm morning briefing in 3 to 4 sentences. Be actionable. Never use dashes or hyphens; use commas instead.\n\n${context}`,
     messages: [
       {
         role: "user",

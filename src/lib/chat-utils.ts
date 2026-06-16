@@ -32,5 +32,13 @@ export function sanitizeReply(text: string): string {
     if (unique[unique.length - 1] !== line) unique.push(line);
   }
 
-  return unique.join(" ").replace(/\s{2,}/g, " ").trim();
+  let result = unique.join(" ").replace(/\s{2,}/g, " ").trim();
+  result = result
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/([a-zA-Z])-([a-zA-Z])/g, "$1 $2")
+    .replace(/\s+-\s+/g, ", ")
+    .replace(/,\s*,/g, ",")
+    .replace(/\s+,/g, ",");
+
+  return result.trim();
 }

@@ -43,7 +43,7 @@ const ACTIVITY_ICONS: Record<ActivityItem["type"], typeof MessageSquare> = {
 const QUICK_ACTIONS = [
   { href: "/dashboard/chat", label: "Chat", desc: "Text your agent", icon: MessageSquare },
   { href: "/dashboard/call/voice", label: "Voice", desc: "Talk out loud", icon: Phone },
-  { href: "/dashboard/call/video", label: "Video", desc: "Face-to-face call", icon: Video },
+  { href: "/dashboard/call/video", label: "Video", desc: "Face to face call", icon: Video },
   { href: "/dashboard/skills", label: "Skills", desc: "Teach new behaviors", icon: Sparkles },
   { href: "/dashboard/connectors", label: "Connectors", desc: "Gmail, calendar & more", icon: Plug },
 ] as const;

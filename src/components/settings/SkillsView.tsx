@@ -40,7 +40,7 @@ export function SkillsView() {
         <div>
           <h1 className="text-2xl font-semibold">Skills</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Teach your agent rules in plain English — no code required.
+            Teach your agent rules in plain English, no code required.
           </p>
         </div>
         <Button size="sm" onClick={() => setShowForm(true)}>

@@ -115,7 +115,7 @@ function BrainKeyStep({
         <div>
           <h2 className="text-xl font-semibold">Give your agent a brain</h2>
           <p className="text-sm text-zinc-500">
-            Paste your Grok API key — this powers chat and voice.
+            Paste your Grok API key. This powers chat and voice.
           </p>
         </div>
       </div>
@@ -159,7 +159,7 @@ function BrainKeyStep({
             >
               console.x.ai
             </a>
-            . Stored securely on this device — no terminal needed.
+            . Stored securely on this device, no terminal needed.
           </p>
           {error && (
             <p className="mt-2 text-sm text-red-600">{error}</p>
@@ -184,7 +184,7 @@ function BrainKeyStep({
       <div className="rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-900">
         <p className="text-sm font-medium">Gmail, Calendar & more</p>
         <p className="mt-1 text-sm text-zinc-500">
-          You&apos;ll connect those after setup — one tap each from Connectors.
+          You&apos;ll connect those after setup, one tap each from Connectors.
         </p>
       </div>
     </div>
@@ -269,7 +269,7 @@ export function OnboardingWizard() {
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-semibold tracking-tight">Welcome to Hub</h1>
         <p className="mt-2 text-zinc-500">
-          Add a brain, pick an avatar — you&apos;re in.
+          Add a brain, pick an avatar, you&apos;re in.
         </p>
       </div>
 
@@ -303,7 +303,7 @@ export function OnboardingWizard() {
                 <div>
                   <h2 className="text-xl font-semibold">Choose your agent</h2>
                   <p className="text-sm text-zinc-500">
-                    Pick who you want to talk to — voice matches their look.
+                    Pick who you want to talk to. Voice matches their look.
                   </p>
                 </div>
               </div>
@@ -316,7 +316,7 @@ export function OnboardingWizard() {
                 <Camera className="mx-auto h-8 w-8 text-zinc-400" />
                 <p className="mt-2 text-sm font-medium">Create from your photo</p>
                 <p className="mt-1 text-xs text-zinc-500">
-                  Coming soon — upload a photo to create a cartoon avatar of yourself
+                  Coming soon: upload a photo to create a cartoon avatar of yourself
                 </p>
               </div>
               {avatar && (

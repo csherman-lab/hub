@@ -23,7 +23,7 @@ const SUGGESTIONS: {
   },
   {
     when: () => true,
-    text: "Teach me a skill — go to Skills and add a plain-English rule.",
+    text: "Teach me a skill, go to Skills and add a plain English rule.",
     href: "/dashboard/skills",
   },
   {

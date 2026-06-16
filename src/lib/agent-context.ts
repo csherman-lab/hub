@@ -23,15 +23,15 @@ export function buildAgentContext(params: {
 
   if (params.memories?.length) {
     sections.push(
-      `Things you remember about this user:\n${params.memories.map((m) => `- ${m}`).join("\n")}`,
+      `Things you remember about this user:\n${params.memories.map((m) => `• ${m}`).join("\n")}`,
     );
   }
 
   if (params.skills?.length) {
     const lines = params.skills.map(
-      (s) => `- When user says "${s.trigger}" → ${s.action}`,
+      (s) => `• When user says "${s.trigger}" then ${s.action}`,
     );
-    sections.push(`User-taught skills (follow these):\n${lines.join("\n")}`);
+    sections.push(`User taught skills (follow these):\n${lines.join("\n")}`);
   }
 
   if (params.connectorSummary) {

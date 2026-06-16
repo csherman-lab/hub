@@ -22,14 +22,14 @@ const DEFAULT_CONNECTORS: Connector[] = [
   {
     id: "openai",
     name: "OpenAI",
-    description: "Optional — alternative LLM",
+    description: "Optional alternative LLM",
     status: "disconnected",
     required: false,
   },
   {
     id: "xai",
     name: "xAI / Grok",
-    description: "Powers chat and voice — set up during onboarding",
+    description: "Powers chat and voice, set up during onboarding",
     status: "disconnected",
     required: true,
   },

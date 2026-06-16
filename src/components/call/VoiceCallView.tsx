@@ -95,7 +95,7 @@ export function VoiceCallView() {
         setStatus("Tap Talk to speak");
         setEmotion("happy");
       } catch {
-        setStatus("Something went wrong — tap Talk to try again");
+        setStatus("Something went wrong, tap Talk to try again");
         setEmotion("empathetic");
       }
     },
@@ -141,7 +141,7 @@ export function VoiceCallView() {
     };
     recognition.onerror = () => {
       setListening(false);
-      setStatus("Didn't catch that — tap Talk to try again");
+      setStatus("Didn't catch that, tap Talk to try again");
     };
     recognition.onend = () => setListening(false);
     recognition.start();

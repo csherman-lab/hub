@@ -1,8 +1,7 @@
 import type { Avatar } from "@/types";
 
-/** xAI Grok voice IDs — see GET https://api.x.ai/v1/tts/voices */
+/** xAI Grok voice IDs. See GET https://api.x.ai/v1/tts/voices */
 export const AVATARS: Avatar[] = [
-  // ── Orbs: glossy spheres that breathe, blink, and follow you ──
   {
     id: "voicemate",
     name: "VoiceMate",
@@ -10,10 +9,10 @@ export const AVATARS: Avatar[] = [
     category: "orbs",
     tagline: "Your signature companion",
     personality:
-      "Upbeat, personable, and conversational. Talks like a close friend — casual, encouraging, always engaged.",
+      "Upbeat, personable, and conversational. Talks like a close friend, casual, encouraging, always engaged.",
     voiceId: "leo",
     previewLine:
-      "Hey! I'm VoiceMate — your living voice companion. Let's figure things out together.",
+      "Hey! I'm VoiceMate, your living voice companion. Let's figure things out together.",
     renderer: "orb",
     variant: "violet",
     accentColor: "#AF52DE",
@@ -25,10 +24,10 @@ export const AVATARS: Avatar[] = [
     category: "orbs",
     tagline: "Cool & electric",
     personality:
-      "Quick-witted and energetic. Speaks with spark and momentum — always ready to brainstorm or cheer you on.",
+      "Quick, witty, and energetic. Speaks with spark and momentum, always ready to brainstorm or cheer you on.",
     voiceId: "eve",
     previewLine:
-      "Hi! I'm Pulse — sharp, bright, and always tuned in. What's on your mind?",
+      "Hi! I'm Pulse, sharp, bright, and always tuned in. What's on your mind?",
     renderer: "orb",
     variant: "aurora",
     accentColor: "#5AC8FA",
@@ -43,13 +42,11 @@ export const AVATARS: Avatar[] = [
       "Confident and direct with a warm edge. Gets to the point but never feels cold.",
     voiceId: "rex",
     previewLine:
-      "Ember here. Tell me what you need — I'll help you move on it.",
+      "Ember here. Tell me what you need, I'll help you move on it.",
     renderer: "orb",
     variant: "ember",
     accentColor: "#FF6B35",
   },
-
-  // ── Glyphs: faceted crystals — precise, focused, shimmering ──
   {
     id: "prism",
     name: "Prism",
@@ -57,10 +54,10 @@ export const AVATARS: Avatar[] = [
     category: "glyphs",
     tagline: "Calm & capable",
     personality:
-      "Calm, confident, and polished. Speaks clearly and efficiently — professional but never cold. Great for email, calendars, and keeping your day on track.",
+      "Calm, confident, and polished. Speaks clearly and efficiently, professional but never cold. Great for email, calendars, and keeping your day on track.",
     voiceId: "ara",
     previewLine:
-      "Hi there. I'm Prism — organized, steady, and ready to help you stay on top of things.",
+      "Hi there. I'm Prism, organized, steady, and ready to help you stay on top of things.",
     renderer: "glyph",
     variant: "sapphire",
     accentColor: "#007AFF",
@@ -75,7 +72,7 @@ export const AVATARS: Avatar[] = [
       "Clever and improvisational. Thinks on his feet, cracks light jokes, and loves riffing on ideas until something clicks.",
     voiceId: "leo",
     previewLine:
-      "Flux here — throw me a half-baked idea and I'll help you shape it into something great.",
+      "Flux here, throw me a rough idea and I'll help you shape it into something great.",
     renderer: "glyph",
     variant: "citrine",
     accentColor: "#FF9F0A",
@@ -95,8 +92,6 @@ export const AVATARS: Avatar[] = [
     variant: "onyx",
     accentColor: "#6B4CE6",
   },
-
-  // ── Wisps: soft organic forms — warm, dreamy, emotionally attuned ──
   {
     id: "muse",
     name: "Muse",
@@ -104,10 +99,10 @@ export const AVATARS: Avatar[] = [
     category: "wisps",
     tagline: "Creative & warm",
     personality:
-      "Warm, witty, and imaginative. Speaks like a creative friend — enthusiastic, vivid language, always finding the story in things.",
+      "Warm, witty, and imaginative. Speaks like a creative friend, enthusiastic, vivid language, always finding the story in things.",
     voiceId: "eve",
     previewLine:
-      "Hey! I'm Muse — all about creative ideas, writing, and making things feel alive.",
+      "Hey! I'm Muse, all about creative ideas, writing, and making things feel alive.",
     renderer: "wisp",
     variant: "bloom",
     accentColor: "#FF2D92",
@@ -119,10 +114,10 @@ export const AVATARS: Avatar[] = [
     category: "wisps",
     tagline: "Gentle & supportive",
     personality:
-      "Soft-spoken and empathetic. Listens first, validates feelings, and offers calm guidance without rushing you.",
+      "Soft spoken and empathetic. Listens first, validates feelings, and offers calm guidance without rushing you.",
     voiceId: "ara",
     previewLine:
-      "I'm Haven. Whatever's on your mind — I'm here, no judgment, just support.",
+      "I'm Haven. Whatever's on your mind, I'm here, no judgment, just support.",
     renderer: "wisp",
     variant: "mist",
     accentColor: "#64D2FF",
@@ -151,9 +146,9 @@ export const CATEGORY_LABELS: Record<Avatar["category"], string> = {
 };
 
 export const CATEGORY_DESCRIPTIONS: Record<Avatar["category"], string> = {
-  orbs: "Glossy spheres — breathe, blink, and react to you",
-  glyphs: "Faceted crystals — sharp, focused, and shimmering",
-  wisps: "Soft organic forms — warm, dreamy, and emotionally attuned",
+  orbs: "Glossy spheres that breathe, blink, and react to you",
+  glyphs: "Faceted crystals, sharp, focused, and shimmering",
+  wisps: "Soft organic forms, warm, dreamy, and emotionally attuned",
 };
 
 const LEGACY_AVATAR_IDS: Record<string, string> = {

@@ -285,7 +285,7 @@ export function ChatView() {
               Hey! I&apos;m {agentName || avatar.name}.
             </p>
             <p className="mt-1 max-w-sm text-sm text-zinc-500">
-              I can read your inbox, check your calendar, search the web, and draft emails — with your approval.
+              I can read your inbox, check your calendar, search the web, and draft emails, with your approval.
             </p>
             <div className="mt-6 flex max-w-md flex-wrap justify-center gap-2">
               {QUICK_ACTIONS.map((action) => (

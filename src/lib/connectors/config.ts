@@ -29,7 +29,7 @@ export const CONNECTOR_META: ConnectorMeta[] = [
   {
     id: "openai",
     name: "OpenAI",
-    description: "Optional — alternative LLM and Realtime voice",
+    description: "Optional alternative LLM and Realtime voice",
     required: false,
     connectType: "api_key",
     brandColor: "#10A37F",

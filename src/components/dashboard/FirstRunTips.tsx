@@ -4,8 +4,8 @@ import { useHubStore } from "@/lib/store";
 import { X } from "lucide-react";
 
 const TIPS = [
-  "Press ⌘K to jump anywhere — chat, calls, connectors.",
-  "Teach your agent Skills in plain English — no code.",
+  "Press ⌘K to jump anywhere, chat, calls, connectors.",
+  "Teach your agent Skills in plain English, no code.",
   "Say “remember that…” and your agent will store it as memory.",
   "Connect Gmail to draft and send emails with your approval.",
   "Use Voice or Video for a more natural conversation.",

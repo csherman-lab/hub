@@ -66,7 +66,7 @@ export function VideoCallView() {
       setStatus("Tap Talk to speak");
     } catch {
       setCameraError(true);
-      setStatus("Camera off — avatar only");
+      setStatus("Camera off, avatar only");
     }
   }, [attachUserStream]);
 
@@ -150,7 +150,7 @@ export function VideoCallView() {
         setLocalEmotion("happy");
         setEmotion("happy");
       } catch {
-        setStatus("Error — try again");
+        setStatus("Error, try again");
       }
     },
     [
