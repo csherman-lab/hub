@@ -17,14 +17,14 @@ export interface ConnectorMeta {
 export const CONNECTOR_META: ConnectorMeta[] = [
   {
     id: "xai",
-    name: "xAI / Grok",
-    description: "Powers chat, knowledge, and voice",
+    name: "Grok AI",
+    description: "Powers chat, voice, and your agent's brain",
     required: true,
-    connectType: "env",
+    connectType: "api_key",
     brandColor: "#1DA1F2",
     icon: "xai",
     setupUrl: "https://console.x.ai",
-    keyLabel: "XAI_API_KEY",
+    keyLabel: "xAI API Key",
   },
   {
     id: "openai",
@@ -101,6 +101,18 @@ export const CONNECTOR_META: ConnectorMeta[] = [
     keyLabel: "API Key",
   },
 ];
+
+/** Connectors on the roadmap — shown as "coming soon" in the UI */
+export const PLANNED_CONNECTORS = [
+  { name: "Microsoft Outlook", description: "Email & calendar for work accounts" },
+  { name: "Notion", description: "Notes, docs, and knowledge base" },
+  { name: "Linear", description: "Issues and project tracking" },
+  { name: "GitHub", description: "PRs, issues, and code context" },
+  { name: "Zoom", description: "Meeting links and recordings" },
+  { name: "Apple Calendar", description: "Personal calendar sync" },
+  { name: "Discord", description: "Community and team chat" },
+  { name: "Spotify", description: "Music and focus playlists" },
+] as const;
 
 export const GOOGLE_SCOPES: Record<"gmail" | "google_calendar", string[]> = {
   gmail: [

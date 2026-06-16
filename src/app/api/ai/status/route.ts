@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getXaiApiKey, verifyXaiKey } from "@/lib/xai";
+import { getServerXaiApiKey, verifyXaiKey } from "@/lib/xai";
 
 export async function GET() {
-  const apiKey = getXaiApiKey();
+  const apiKey = await getServerXaiApiKey();
   if (!apiKey) {
     return NextResponse.json({
       configured: false,

@@ -45,6 +45,24 @@ export async function deleteConnectorTokens(connectorId: ConnectorId) {
   store.delete(`hub_token_${connectorId}`);
 }
 
+export async function setConnectorApiKey(connectorId: ConnectorId, apiKey: string) {
+  const store = await cookies();
+  store.set(`hub_apikey_${connectorId}`, apiKey.trim(), cookieOptions);
+}
+
+export async function getConnectorApiKey(
+  connectorId: ConnectorId,
+): Promise<string | null> {
+  const store = await cookies();
+  const raw = store.get(`hub_apikey_${connectorId}`);
+  return raw?.value?.trim() || null;
+}
+
+export async function deleteConnectorApiKey(connectorId: ConnectorId) {
+  const store = await cookies();
+  store.delete(`hub_apikey_${connectorId}`);
+}
+
 export async function setOAuthState(state: string, connectorId: ConnectorId) {
   const store = await cookies();
   store.set(`hub_oauth_state`, `${connectorId}:${state}`, {

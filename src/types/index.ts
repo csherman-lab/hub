@@ -37,6 +37,7 @@ export interface Avatar {
   voiceId: string;
   previewLine: string;
   image?: string;
+  modelUrl?: string;
   accentColor: string;
 }
 

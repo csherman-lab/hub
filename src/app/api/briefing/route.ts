@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAgentContext } from "@/lib/agent-context";
 import { fetchCalendarSummary, fetchGmailSummary } from "@/lib/tools/integrations";
-import { getXaiApiKey, grokChat, extractGrokContent } from "@/lib/xai";
+import { getServerXaiApiKey, grokChat, extractGrokContent } from "@/lib/xai";
 
 export async function POST(req: NextRequest) {
-  const apiKey = getXaiApiKey();
+  const apiKey = await getServerXaiApiKey();
   if (!apiKey) {
     return NextResponse.json({
       briefing:

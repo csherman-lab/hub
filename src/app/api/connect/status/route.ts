@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getConnectionStatus } from "@/lib/connectors/tokens";
-import { getXaiApiKey } from "@/lib/xai";
+import { getServerXaiApiKey } from "@/lib/xai";
 
 export async function GET() {
   const connections = await getConnectionStatus();
-  connections.xai = { connected: !!getXaiApiKey() };
+  connections.xai = { connected: !!(await getServerXaiApiKey()) };
   return NextResponse.json({ connections });
 }

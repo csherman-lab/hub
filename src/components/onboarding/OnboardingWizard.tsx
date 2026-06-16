@@ -42,6 +42,7 @@ const GOALS = Object.entries(GOAL_LABELS).map(([id, label]) => ({
 const STEPS = ["Goals", "Avatar", "Behavior", "Connect", "Meet"];
 
 function GrokConnectStep() {
+  const router = useRouter();
   const [checking, setChecking] = useState(false);
   const { grokStatus, setGrokStatus, connectConnector, disconnectConnector } =
     useHubStore();
@@ -71,43 +72,29 @@ function GrokConnectStep() {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-semibold">Connect Grok AI</h2>
+      <h2 className="text-xl font-semibold">Connect your AI</h2>
       <p className="text-sm text-zinc-500">
-        Hub uses your xAI key for chat and voice. Add it once in your project folder.
+        One tap in Connectors — paste your Grok key or sign in to Gmail. No terminal or config files.
       </p>
 
       <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
         <div>
-          <p className="text-sm font-medium">Connection status</p>
+          <p className="text-sm font-medium">Grok status</p>
           <GrokStatusBadge className="mt-1" />
         </div>
         <Button variant="secondary" size="sm" onClick={checkGrok} disabled={checking}>
-          {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check again"}
+          {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
         </Button>
       </div>
 
-      {!grokStatus?.chat && (
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm font-medium">Setup (one time)</p>
-          <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-            <li>
-              Run <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">npm run setup:env</code>
-            </li>
-            <li>
-              Add your key:{" "}
-              <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
-                XAI_API_KEY=xai-...
-              </code>
-            </li>
-            <li>Restart the dev server, then tap Check again</li>
-          </ol>
-        </div>
-      )}
+      <Button className="w-full" onClick={() => router.push("/dashboard/connectors")}>
+        Open Connectors
+      </Button>
 
       <div className="rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-900">
-        <p className="text-sm font-medium">Optional connectors</p>
+        <p className="text-sm font-medium">Gmail & Calendar</p>
         <p className="mt-1 text-sm text-zinc-500">
-          Gmail, Calendar, and Slack — add from Connectors after setup.
+          Tap Connect Gmail — Google sign-in opens, you approve, done.
         </p>
       </div>
     </div>

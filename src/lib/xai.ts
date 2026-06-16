@@ -5,6 +5,15 @@ export function getXaiApiKey(override?: string): string | null {
   return override?.trim() || process.env.XAI_API_KEY?.trim() || null;
 }
 
+/** Server-side: cookie (user connected in UI) → env fallback */
+export async function getServerXaiApiKey(override?: string): Promise<string | null> {
+  if (override?.trim()) return override.trim();
+  const { getConnectorApiKey } = await import("@/lib/connectors/tokens");
+  const fromCookie = await getConnectorApiKey("xai");
+  if (fromCookie) return fromCookie;
+  return process.env.XAI_API_KEY?.trim() || null;
+}
+
 export interface GrokMessage {
   role: string;
   content?: string | null;

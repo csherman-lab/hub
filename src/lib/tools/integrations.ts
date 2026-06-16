@@ -111,8 +111,17 @@ export async function searchWeb(
   apiKey?: string,
 ): Promise<string | null> {
   const key = process.env.TAVILY_API_KEY || apiKey;
+  if (!key) {
+    const { getConnectorApiKey } = await import("@/lib/connectors/tokens");
+    const fromCookie = await getConnectorApiKey("web_search");
+    if (fromCookie) return searchWebWithKey(query, fromCookie);
+  }
   if (!key) return null;
 
+  return searchWebWithKey(query, key);
+}
+
+async function searchWebWithKey(query: string, key: string): Promise<string | null> {
   const res = await fetch("https://api.tavily.com/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

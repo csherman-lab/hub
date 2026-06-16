@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ConnectorIcon } from "@/components/connectors/ConnectorIcon";
-import { CONNECTOR_META } from "@/lib/connectors/config";
+import { CONNECTOR_META, PLANNED_CONNECTORS } from "@/lib/connectors/config";
 import { useHubStore } from "@/lib/store";
 import type { ConnectorId } from "@/types";
 import { cn } from "@/lib/utils";
@@ -18,11 +18,11 @@ const OAUTH_ROUTES: Partial<Record<ConnectorId, string>> = {
 
 const ERROR_MESSAGES: Record<string, string> = {
   google_not_configured:
-    "Google OAuth is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env.local file.",
+    "Google sign-in isn't available on this Hub yet. The person who set up Hub needs to enable Google once — then you can just click Connect.",
   slack_not_configured:
-    "Slack OAuth is not set up yet. Add SLACK_CLIENT_ID and SLACK_CLIENT_SECRET to your .env.local file.",
-  access_denied: "Connection cancelled.",
-  token_exchange_failed: "Could not complete connection. Try again.",
+    "Slack isn't available on this Hub yet. Ask your admin to enable Slack integration.",
+  access_denied: "You cancelled the connection.",
+  token_exchange_failed: "Couldn't finish connecting. Please try again.",
 };
 
 export function ConnectorsView() {
@@ -88,35 +88,52 @@ export function ConnectorsView() {
     const meta = CONNECTOR_META.find((c) => c.id === id);
     if (!meta) return;
 
-    if (meta.connectType === "env") return;
-
     if (meta.connectType === "oauth") {
       const route = OAUTH_ROUTES[id];
       if (route) window.location.href = route;
       return;
     }
 
-    setExpandedKey(id);
-    setKeyInput(apiKeys[id] || "");
+    if (meta.connectType === "api_key") {
+      setExpandedKey(id);
+      setKeyInput(apiKeys[id] || "");
+    }
   };
 
-  const handleSaveKey = (id: ConnectorId) => {
-    setApiKey(id, keyInput);
-    setExpandedKey(null);
-    setKeyInput("");
-    setToast(`${CONNECTOR_META.find((c) => c.id === id)?.name} connected`);
+  const handleSaveKey = async (id: ConnectorId) => {
+    const trimmed = keyInput.trim();
+    if (!trimmed) return;
+
+    try {
+      const res = await fetch("/api/connect/api-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectorId: id, apiKey: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast(data.error || "Could not connect");
+        return;
+      }
+      setApiKey(id, trimmed);
+      connectConnector(id);
+      setExpandedKey(null);
+      setKeyInput("");
+      setToast(`${CONNECTOR_META.find((c) => c.id === id)?.name} connected`);
+      syncStatus();
+    } catch {
+      setToast("Something went wrong. Try again.");
+    }
   };
 
   const handleDisconnect = async (id: ConnectorId) => {
     const meta = CONNECTOR_META.find((c) => c.id === id);
 
-    if (meta?.connectType === "oauth") {
-      await fetch("/api/connect/disconnect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectorId: id }),
-      });
-    }
+    await fetch("/api/connect/disconnect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ connectorId: id }),
+    });
 
     disconnectConnector(id);
     setToast(`${meta?.name} disconnected`);
@@ -144,8 +161,7 @@ export function ConnectorsView() {
 
       <h1 className="text-2xl font-semibold">Connectors</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Tap Connect to link your accounts. OAuth services open a sign-in window;
-        API key services ask for your key once.
+        One tap to connect. Gmail and Calendar open Google sign-in. Grok asks for your key once — we store it securely on this device.
       </p>
 
       <div className="mt-8 space-y-3">
@@ -203,11 +219,9 @@ export function ConnectorsView() {
                       </Button>
                     )}
                   </div>
-                ) : meta.connectType === "env" ? (
-                  <span className="text-xs text-zinc-500">Add to .env.local</span>
                 ) : (
                   <Button size="sm" onClick={() => handleConnect(meta.id)}>
-                    Connect {meta.name.split(" ")[0]}
+                    Connect
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 )}
@@ -223,25 +237,44 @@ export function ConnectorsView() {
                     value={keyInput}
                     onChange={(e) => setKeyInput(e.target.value)}
                     placeholder={
-                      meta.id === "openai"
-                        ? "sk-..."
-                        : meta.id === "web_search"
-                          ? "tvly-..."
-                          : "Enter key"
+                      meta.id === "xai"
+                        ? "xai-..."
+                        : meta.id === "openai"
+                          ? "sk-..."
+                          : meta.id === "web_search"
+                            ? "tvly-..."
+                            : "Paste your key"
                     }
                     className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 font-mono text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
                     autoFocus
                   />
                   <p className="mt-2 text-xs text-zinc-500">
-                    Get your key at{" "}
-                    <a
-                      href={meta.setupUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {meta.setupUrl.replace("https://", "")}
-                    </a>
+                    {meta.id === "xai" ? (
+                      <>
+                        Get a free key at{" "}
+                        <a
+                          href={meta.setupUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          console.x.ai
+                        </a>
+                        . Paste it here — no terminal or config files needed.
+                      </>
+                    ) : (
+                      <>
+                        Get your key at{" "}
+                        <a
+                          href={meta.setupUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          {meta.setupUrl.replace("https://", "")}
+                        </a>
+                      </>
+                    )}
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button
@@ -266,21 +299,23 @@ export function ConnectorsView() {
         })}
       </div>
 
-      <div className="mt-8 rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-900">
-        <h3 className="text-sm font-semibold">Developer setup (one-time)</h3>
-        <p className="mt-2 text-sm text-zinc-500">
-          Add <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">XAI_API_KEY</code>{" "}
-          for Grok chat and voice. For Gmail, Calendar, and Slack, add OAuth
-          credentials to{" "}
-          <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
-            .env.local
-          </code>{" "}
-          in the project folder. See{" "}
-          <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">
-            docs/SETUP.md
-          </code>{" "}
-          for step-by-step instructions.
-        </p>
+      <div className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
+          Coming soon
+        </h2>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {PLANNED_CONNECTORS.map((c) => (
+            <div
+              key={c.name}
+              className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
+            >
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                {c.name}
+              </p>
+              <p className="text-xs text-zinc-400">{c.description}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

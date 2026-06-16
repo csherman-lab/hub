@@ -29,7 +29,7 @@ const DEFAULT_CONNECTORS: Connector[] = [
   {
     id: "xai",
     name: "xAI / Grok",
-    description: "Powers chat and voice via .env.local",
+    description: "Powers chat and voice — connect in Connectors",
     status: "disconnected",
     required: true,
   },

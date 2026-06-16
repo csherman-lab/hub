@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getXaiApiKey, grokTts } from "@/lib/xai";
+import { getServerXaiApiKey, grokTts } from "@/lib/xai";
 
 export async function POST(req: NextRequest) {
   try {
     const { text, voiceId } = await req.json();
-    const apiKey = getXaiApiKey();
+    const apiKey = await getServerXaiApiKey();
 
     if (!text) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "XAI_API_KEY not configured in .env.local" },
+        { error: "Connect Grok in Connectors to enable voice." },
         { status: 503 },
       );
     }

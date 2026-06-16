@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteConnectorTokens } from "@/lib/connectors/tokens";
+import { deleteConnectorApiKey, deleteConnectorTokens } from "@/lib/connectors/tokens";
 import type { ConnectorId } from "@/types";
 
 const VALID_IDS: ConnectorId[] = [
@@ -21,5 +21,6 @@ export async function POST(req: NextRequest) {
   }
 
   await deleteConnectorTokens(connectorId);
+  await deleteConnectorApiKey(connectorId);
   return NextResponse.json({ success: true });
 }

@@ -163,7 +163,7 @@ export function ChatView() {
       } catch {
         addMessage(
           "assistant",
-          "I'm having trouble connecting. Check XAI_API_KEY in .env.local and restart.",
+          "I'm having trouble connecting. Open Connectors and connect Grok AI, then try again.",
           "chat",
         );
         setEmotion("empathetic");

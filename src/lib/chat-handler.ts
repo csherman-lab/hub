@@ -3,7 +3,7 @@ import { sanitizeReply } from "@/lib/chat-utils";
 import { HUB_TOOLS, TOOL_LABELS, type ToolName } from "@/lib/tools/definitions";
 import { mergeSideEffects, runTool, type ToolSideEffects } from "@/lib/tools/runner";
 import {
-  getXaiApiKey,
+  getServerXaiApiKey,
   grokChat,
   grokChatStream,
   extractGrokContent,
@@ -189,7 +189,7 @@ async function runToolLoop(
 }
 
 export async function runChat(req: ChatRequest): Promise<ChatResult> {
-  const apiKey = getXaiApiKey();
+  const apiKey = await getServerXaiApiKey();
   if (!apiKey) {
     const mock = mockResponse(req.message);
     return { ...mock, mode: "mock" };
@@ -214,7 +214,7 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
 }
 
 export async function* runChatStream(req: ChatRequest): AsyncGenerator<StreamEvent> {
-  const apiKey = getXaiApiKey();
+  const apiKey = await getServerXaiApiKey();
   if (!apiKey) {
     const mock = mockResponse(req.message);
     for (const token of mock.reply.split(/(?=\s)/)) {
