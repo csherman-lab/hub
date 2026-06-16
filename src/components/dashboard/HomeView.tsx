@@ -20,10 +20,9 @@ import {
   X,
   AlertCircle,
   Brain,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
-import { FirstRunTips } from "@/components/dashboard/FirstRunTips";
 import { ProactiveSuggestions } from "@/components/dashboard/ProactiveSuggestions";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
@@ -63,59 +62,55 @@ function formatToday() {
   });
 }
 
-function StatCard({
+function StatPill({
   label,
   value,
-  hint,
   icon: Icon,
   tone = "default",
   href,
 }: {
   label: string;
   value: string | number;
-  hint?: string;
   icon: typeof MessageSquare;
   tone?: "default" | "warn" | "success";
   href?: string;
 }) {
   const toneClass =
     tone === "warn"
-      ? "border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20"
+      ? "text-amber-600 dark:text-amber-400"
       : tone === "success"
-        ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20"
-        : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900";
-
-  const iconClass =
-    tone === "warn"
-      ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40"
-      : tone === "success"
-        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40"
-        : "bg-blue-100 text-blue-600 dark:bg-blue-900/40";
+        ? "text-emerald-600 dark:text-emerald-400"
+        : "text-zinc-900 dark:text-zinc-100";
 
   const inner = (
-    <div
-      className={cn(
-        "flex flex-col gap-3 rounded-2xl border p-4 transition-shadow",
-        toneClass,
-        href && "hover:shadow-sm",
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className={cn("rounded-lg p-2", iconClass)}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <span className="text-2xl font-semibold tabular-nums">{value}</span>
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div
+        className={cn(
+          "rounded-lg p-2",
+          tone === "warn"
+            ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40"
+            : tone === "success"
+              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40"
+              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
+        )}
+      >
+        <Icon className="h-4 w-4" />
       </div>
-      <div>
-        <p className="text-sm font-medium">{label}</p>
-        {hint && <p className="mt-0.5 text-xs text-zinc-500">{hint}</p>}
+      <div className="min-w-0">
+        <p className={cn("text-lg font-semibold tabular-nums leading-none", toneClass)}>
+          {value}
+        </p>
+        <p className="mt-1 truncate text-xs text-zinc-500">{label}</p>
       </div>
     </div>
   );
 
   if (href) {
     return (
-      <Link href={href} className="block">
+      <Link
+        href={href}
+        className="block transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+      >
         {inner}
       </Link>
     );
@@ -242,28 +237,28 @@ export function HomeView() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-4 md:p-8">
-      <FirstRunTips />
-
-      {/* Dashboard header — no duplicate avatar; agent lives in the sidebar */}
+    <div className="mx-auto max-w-6xl p-4 md:p-8">
       <header className="mb-6">
-        <p className="text-sm text-zinc-500">{formatToday()}</p>
-        <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+            <p className="text-sm text-zinc-500">{formatToday()}</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
               {getGreeting()}
             </h1>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              Here&apos;s how things are going with{" "}
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {displayName}
-              </span>
+            <p className="mt-1 text-sm text-zinc-500">
+              Overview of your agent, apps, and recent work
             </p>
           </div>
-          <GrokStatusBadge />
+          <Link
+            href="/dashboard/chat"
+            className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-600"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Start chat
+          </Link>
         </div>
         {goals.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-4 flex flex-wrap gap-1.5">
             {goals.map((g) => (
               <span
                 key={g}
@@ -276,118 +271,24 @@ export function HomeView() {
         )}
       </header>
 
-      {/* At-a-glance stats */}
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard
-          label="Needs approval"
-          value={stats.approvals}
-          hint={stats.approvals ? "Waiting on you" : "All clear"}
-          icon={AlertCircle}
-          tone={stats.approvals > 0 ? "warn" : "default"}
-        />
-        <StatCard
-          label="Conversations"
-          value={stats.messages}
-          hint="Chat messages"
-          icon={MessageSquare}
-          href="/dashboard/chat"
-        />
-        <StatCard
-          label="Skills taught"
-          value={stats.skills}
-          hint="Custom behaviors"
-          icon={Sparkles}
-          href="/dashboard/skills"
-        />
-        <StatCard
-          label="Apps connected"
-          value={stats.connected}
-          hint={stats.connected ? "Ready to use" : "Connect in Connectors"}
-          icon={Plug}
-          tone={stats.connected > 0 ? "success" : "default"}
-          href="/dashboard/connectors"
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-5">
-        {/* Briefing — primary overview content */}
-        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-3">
-          <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <Sun className="h-4 w-4 text-amber-500" />
-              <h2 className="text-sm font-semibold">Agent briefing</h2>
-            </div>
-            <button
-              type="button"
-              onClick={loadBriefing}
-              disabled={briefingLoading}
-              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-50 dark:hover:bg-zinc-800"
-              aria-label="Refresh briefing"
+      {pendingApprovals.length > 0 && (
+        <section className="mb-6 space-y-3">
+          {pendingApprovals.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900 dark:bg-amber-950/20"
             >
-              <RefreshCw className={cn("h-4 w-4", briefingLoading && "animate-spin")} />
-            </button>
-          </div>
-          <div className="p-5">
-            {briefingLoading ? (
-              <p className="text-sm text-zinc-400">Preparing your briefing…</p>
-            ) : (
-              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                {briefing || `${displayName} is ready. Start a chat or connect apps to get a richer briefing.`}
-              </p>
-            )}
-            {stats.memories > 0 && (
-              <p className="mt-4 flex items-center gap-1.5 text-xs text-zinc-500">
-                <Brain className="h-3.5 w-3.5" />
-                {stats.memories} memor{stats.memories === 1 ? "y" : "ies"} stored
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* Quick actions — compact, not a hero duplicate */}
-        <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-2">
-          <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-            <h2 className="text-sm font-semibold">Quick actions</h2>
-            <p className="mt-0.5 text-xs text-zinc-500">Jump in anywhere</p>
-          </div>
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {QUICK_ACTIONS.map(({ href, label, desc, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-              >
-                <div className="rounded-lg bg-zinc-100 p-2 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                  <Icon className="h-4 w-4" />
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/40">
+                  <AlertCircle className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="text-xs text-zinc-500">{desc}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        {pendingApprovals.length > 0 && (
-          <div className="border-b border-zinc-200 p-6 dark:border-zinc-800">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-amber-600">
-              Needs your approval
-            </h2>
-            <div className="space-y-3">
-              {pendingApprovals.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900 dark:bg-amber-950/20"
-                >
                   <p className="font-medium">{item.title}</p>
                   <p className="mt-1 text-sm text-zinc-500">{item.detail}</p>
-                  <pre className="mt-3 max-h-32 overflow-auto rounded-xl bg-white p-3 text-xs whitespace-pre-wrap dark:bg-zinc-900">
+                  <pre className="mt-3 max-h-28 overflow-auto rounded-xl bg-white/80 p-3 text-xs whitespace-pre-wrap dark:bg-zinc-900/80">
                     {item.draft}
                   </pre>
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       onClick={() => handleApprove(item)}
@@ -410,76 +311,186 @@ export function HomeView() {
                     </Button>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        )}
+          ))}
+        </section>
+      )}
 
-        <div className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Recent activity
-            </h2>
+      <section className="mb-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="grid grid-cols-2 divide-x divide-y divide-zinc-100 dark:divide-zinc-800 sm:grid-cols-4 sm:divide-y-0">
+          <StatPill
+            label="Needs approval"
+            value={stats.approvals}
+            icon={AlertCircle}
+            tone={stats.approvals > 0 ? "warn" : "default"}
+          />
+          <StatPill
+            label="Conversations"
+            value={stats.messages}
+            icon={MessageSquare}
+            href="/dashboard/chat"
+          />
+          <StatPill
+            label="Skills taught"
+            value={stats.skills}
+            icon={Sparkles}
+            href="/dashboard/skills"
+          />
+          <StatPill
+            label="Apps connected"
+            value={stats.connected}
+            icon={Plug}
+            tone={stats.connected > 0 ? "success" : "default"}
+            href="/dashboard/connectors"
+          />
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
+        <section className="flex min-h-[280px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-500" />
+              <h2 className="text-sm font-semibold">Agent briefing</h2>
+            </div>
+            <button
+              type="button"
+              onClick={loadBriefing}
+              disabled={briefingLoading}
+              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-50 dark:hover:bg-zinc-800"
+              aria-label="Refresh briefing"
+            >
+              <RefreshCw className={cn("h-4 w-4", briefingLoading && "animate-spin")} />
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col p-5">
+            {briefingLoading ? (
+              <p className="text-sm text-zinc-400">Preparing your briefing…</p>
+            ) : (
+              <p className="flex-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                {briefing ||
+                  `${displayName} is ready. Start a chat or connect apps to get a richer briefing.`}
+              </p>
+            )}
+            {stats.memories > 0 && (
+              <p className="mt-4 flex items-center gap-1.5 text-xs text-zinc-500">
+                <Brain className="h-3.5 w-3.5" />
+                {stats.memories} memor{stats.memories === 1 ? "y" : "ies"} stored
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="flex min-h-[280px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+            <h2 className="text-sm font-semibold">Quick actions</h2>
+            <p className="mt-0.5 text-xs text-zinc-500">Jump in anywhere</p>
+          </div>
+          <div className="flex flex-1 flex-col justify-center divide-y divide-zinc-100 dark:divide-zinc-800">
+            {QUICK_ACTIONS.map(({ href, label, desc, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+              >
+                <div className="rounded-lg bg-zinc-100 p-2 text-zinc-600 transition-colors group-hover:bg-blue-100 group-hover:text-blue-600 dark:bg-zinc-800 dark:text-zinc-300 dark:group-hover:bg-blue-900/40 dark:group-hover:text-blue-400">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{label}</p>
+                  <p className="text-xs text-zinc-500">{desc}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-300 transition-colors group-hover:text-blue-500" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-5">
+        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-3">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+            <h2 className="text-sm font-semibold">Recent activity</h2>
             {activities.length > 5 && (
               <span className="text-xs text-zinc-400">{activities.length} total</span>
             )}
           </div>
-          {activities.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              No activity yet. Start a conversation or connect an app.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {activities.slice(0, 5).map((item) => {
-                const Icon = ACTIVITY_ICONS[item.type];
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-start gap-3 rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50"
-                  >
+          <div className="p-5">
+            {activities.length === 0 ? (
+              <div className="rounded-xl bg-zinc-50 px-4 py-8 text-center dark:bg-zinc-800/50">
+                <MessageSquare className="mx-auto h-8 w-8 text-zinc-300" />
+                <p className="mt-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  No activity yet
+                </p>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Start a conversation or connect an app to see updates here.
+                </p>
+                <Link
+                  href="/dashboard/chat"
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:underline"
+                >
+                  Open chat
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {activities.slice(0, 6).map((item) => {
+                  const Icon = ACTIVITY_ICONS[item.type];
+                  return (
                     <div
-                      className={cn(
-                        "rounded-lg p-2",
-                        item.needsApproval
-                          ? "bg-amber-100 text-amber-600"
-                          : "bg-blue-100 text-blue-600",
-                      )}
+                      key={item.id}
+                      className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     >
-                      <Icon className="h-4 w-4" />
+                      <div
+                        className={cn(
+                          "rounded-lg p-2",
+                          item.needsApproval
+                            ? "bg-amber-100 text-amber-600"
+                            : "bg-blue-100 text-blue-600 dark:bg-blue-900/40",
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <p className="text-sm text-zinc-500">{item.detail}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1 text-xs text-zinc-400">
+                        <Clock className="h-3 w-3" />
+                        {new Date(item.timestamp).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{item.title}</p>
-                      <p className="text-sm text-zinc-500">{item.detail}</p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1 text-xs text-zinc-400">
-                      <Clock className="h-3 w-3" />
-                      {new Date(item.timestamp).toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <ProactiveSuggestions />
-
-        <div className="border-t border-zinc-200 p-6 dark:border-zinc-800">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Connected apps
-            </h2>
-            <Link
-              href="/dashboard/connectors"
-              className="text-sm text-blue-500 hover:underline"
-            >
-              Manage
-            </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          <ConnectedAppsSummary />
+        </section>
+
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+              <h2 className="text-sm font-semibold">Connected apps</h2>
+              <Link
+                href="/dashboard/connectors"
+                className="text-xs font-medium text-blue-500 hover:underline"
+              >
+                Manage
+              </Link>
+            </div>
+            <div className="p-5">
+              <ConnectedAppsSummary />
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <ProactiveSuggestions embedded />
+          </section>
         </div>
       </div>
     </div>
@@ -492,21 +503,26 @@ function ConnectedAppsSummary() {
 
   if (connected.length === 0) {
     return (
-      <p className="mt-3 text-sm text-zinc-500">
-        No apps connected yet.{" "}
-        <Link href="/dashboard/connectors" className="text-blue-500">
+      <div className="text-center">
+        <Plug className="mx-auto h-7 w-7 text-zinc-300" />
+        <p className="mt-2 text-sm text-zinc-500">No apps connected yet</p>
+        <Link
+          href="/dashboard/connectors"
+          className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-500 hover:underline"
+        >
           Add connectors
+          <ArrowRight className="h-3.5 w-3.5" />
         </Link>
-      </p>
+      </div>
     );
   }
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       {connected.map((c) => (
         <span
           key={c.id}
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
         >
           <CheckCircle2 className="h-3.5 w-3.5" />
           {c.name}

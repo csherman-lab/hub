@@ -83,7 +83,8 @@ test.describe("Hub full flow", () => {
     await page.getByRole("button", { name: /Go to Dashboard/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
-    await expect(page.getByText("VoiceMate").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "VoiceMate" })).toBeVisible();
   });
 
   test("onboarding meet shortcuts complete setup", async ({ page }) => {

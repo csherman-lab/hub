@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Home,
   MessageSquare,
@@ -11,12 +12,14 @@ import {
   Settings,
   Video,
   Search,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAvatarById } from "@/lib/avatars";
 import { useHubStore } from "@/lib/store";
+import { useSidebarStore } from "@/lib/sidebar-store";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
-import { GrokStatusBadge } from "@/components/ai/GrokStatusBadge";
 import { CommandPaletteTrigger } from "@/components/layout/CommandPalette";
 import { useCommandPaletteStore } from "@/lib/command-palette-store";
 
@@ -44,11 +47,13 @@ function NavLink({
   label,
   icon: Icon,
   pathname,
+  collapsed,
 }: {
   href: string;
   label: string;
   icon: typeof Home;
   pathname: string | null;
+  collapsed: boolean;
 }) {
   const active =
     href === "/dashboard"
@@ -58,30 +63,53 @@ function NavLink({
   return (
     <Link
       href={href}
+      title={collapsed ? label : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+        "flex items-center rounded-xl text-sm font-medium transition-colors",
+        collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
         active
           ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
           : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800",
       )}
     >
-      <Icon className="h-4 w-4" />
-      {label}
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { selectedAvatarId, agentName, currentEmotion, agentActivity } =
-    useHubStore();
+  const { selectedAvatarId, currentEmotion } = useHubStore();
+  const collapsed = useSidebarStore((s) => s.collapsed);
+  const toggleSidebar = useSidebarStore((s) => s.toggle);
   const togglePalette = useCommandPaletteStore((s) => s.toggle);
   const avatar = getAvatarById(selectedAvatarId);
+  const [sidebarReady, setSidebarReady] = useState(false);
 
   const isCallView = pathname?.includes("/call/");
-  const isChatView = pathname?.startsWith("/dashboard/chat");
   const isHome = pathname === "/dashboard";
   const showMobileFab = isHome;
+  const isCollapsed = sidebarReady && collapsed;
+
+  useEffect(() => {
+    let cancelled = false;
+    const finish = () => {
+      if (!cancelled) setSidebarReady(true);
+    };
+
+    const unsub = useSidebarStore.persist.onFinishHydration(finish);
+    void useSidebarStore.persist.rehydrate();
+
+    if (useSidebarStore.persist.hasHydrated()) {
+      finish();
+    }
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
 
   if (isCallView) {
     return <>{children}</>;
@@ -89,69 +117,148 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-black md:pb-0">
-      <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl dark:bg-zinc-900/60 md:flex">
-        <div className="p-4">
-          <div className="flex items-center justify-between gap-2">
-            <Link href="/dashboard" className="text-base font-semibold tracking-tight">
-              Hub
-            </Link>
-            <CommandPaletteTrigger />
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[var(--hub-border)] bg-white/60 backdrop-blur-xl transition-[width] duration-300 ease-in-out dark:bg-zinc-900/60 md:flex",
+          isCollapsed ? "w-[4.5rem]" : "w-52",
+        )}
+      >
+        <div className={cn("p-3", isCollapsed && "px-2")}>
+          <div
+            className={cn(
+              "flex items-center gap-2",
+              isCollapsed ? "flex-col" : "justify-between",
+            )}
+          >
+            {!isCollapsed && (
+              <Link
+                href="/dashboard"
+                className="text-base font-semibold tracking-tight"
+              >
+                Hub
+              </Link>
+            )}
+            {isCollapsed ? (
+              <button
+                type="button"
+                onClick={togglePalette}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                aria-label="Open actions"
+                title="Actions ⌘K"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            ) : (
+              <CommandPaletteTrigger />
+            )}
           </div>
+
           {avatar && (
-            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-zinc-50 p-2.5 dark:bg-zinc-800/50">
+            <Link
+              href="/dashboard"
+              title={avatar.name}
+              className={cn(
+                "mt-3 flex items-center justify-center rounded-2xl bg-zinc-50 transition-colors hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800",
+                isCollapsed ? "p-2" : "p-3",
+              )}
+            >
               <AvatarDisplay
                 avatar={avatar}
-                size="xs"
+                size={isCollapsed ? "sm" : "xs"}
                 emotion={currentEmotion}
               />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{agentName || avatar.name}</p>
-                {agentActivity ? (
-                  <p className="truncate text-xs text-blue-500">{agentActivity}</p>
-                ) : (
-                  <GrokStatusBadge />
-                )}
-              </div>
-            </div>
+            </Link>
           )}
         </div>
 
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
+        <nav
+          className={cn(
+            "flex-1 space-y-4 overflow-y-auto overflow-x-hidden pb-3",
+            isCollapsed ? "px-2" : "px-3",
+          )}
+        >
           <div className="space-y-0.5">
-            <NavLink href="/dashboard" label="Home" icon={Home} pathname={pathname} />
+            <NavLink
+              href="/dashboard"
+              label="Home"
+              icon={Home}
+              pathname={pathname}
+              collapsed={isCollapsed}
+            />
           </div>
 
           <div>
-            <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-              Talk to agent
-            </p>
+            {!isCollapsed && (
+              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Talk to agent
+              </p>
+            )}
             <div className="space-y-0.5">
               {TALK_NAV.map((item) => (
-                <NavLink key={item.href} {...item} pathname={pathname} />
+                <NavLink
+                  key={item.href}
+                  {...item}
+                  pathname={pathname}
+                  collapsed={isCollapsed}
+                />
               ))}
             </div>
           </div>
 
           <div>
-            <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-              Workspace
-            </p>
+            {!isCollapsed && (
+              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Workspace
+              </p>
+            )}
             <div className="space-y-0.5">
               {WORKSPACE_NAV.map((item) => (
-                <NavLink key={item.href} {...item} pathname={pathname} />
+                <NavLink
+                  key={item.href}
+                  {...item}
+                  pathname={pathname}
+                  collapsed={isCollapsed}
+                />
               ))}
             </div>
           </div>
 
-          <div className="space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+          <div
+            className={cn(
+              "space-y-0.5 border-t border-zinc-200 pt-3 dark:border-zinc-800",
+            )}
+          >
             <NavLink
               href="/dashboard/settings"
               label="Settings"
               icon={Settings}
               pathname={pathname}
+              collapsed={isCollapsed}
             />
           </div>
         </nav>
+
+        <div className={cn("border-t border-zinc-200 p-2 dark:border-zinc-800", isCollapsed && "px-2")}>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className={cn(
+              "flex w-full items-center rounded-xl text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300",
+              isCollapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
+            )}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <>
+                <PanelLeftClose className="h-4 w-4 shrink-0" />
+                <span className="truncate">Collapse</span>
+              </>
+            )}
+          </button>
+        </div>
       </aside>
 
       <main className="hub-main flex-1 overflow-auto">{children}</main>
