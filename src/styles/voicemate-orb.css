@@ -100,10 +100,6 @@
   animation: none;
 }
 
-.orb-eyes.squinting i {
-  transform: scale(1.12, 0.38);
-}
-
 .orb-eyes {
   position: absolute;
   inset: 0;
@@ -128,12 +124,34 @@
   transition: transform 110ms ease;
 }
 
-.orb-eyes.alert i {
-  transform: scaleY(1.18);
+/* Playful crooked eyes — each eye tilts slightly */
+.orb-eyes i:first-child {
+  transform: rotate(-8deg) translateY(1px);
 }
 
-.orb-eyes.blinking i {
+.orb-eyes i:last-child {
+  transform: rotate(8deg) translateY(-1px);
+}
+
+.orb-eyes.alert i:first-child {
+  transform: rotate(-8deg) scaleY(1.18) translateY(1px);
+}
+
+.orb-eyes.alert i:last-child {
+  transform: rotate(8deg) scaleY(1.18) translateY(-1px);
+}
+
+.orb-eyes.blinking i:first-child,
+.orb-eyes.blinking i:last-child {
   transform: scaleY(0.08);
+}
+
+.orb-eyes.squinting i:first-child {
+  transform: rotate(-8deg) scale(1.12, 0.38);
+}
+
+.orb-eyes.squinting i:last-child {
+  transform: rotate(8deg) scale(1.12, 0.38);
 }
 
 .orb.listening {
@@ -248,4 +266,64 @@
   .orb {
     animation: none !important;
   }
+}
+
+/* Color variants */
+.orb--violet {
+  /* default — defined on .orb */
+}
+
+.orb--aurora {
+  background:
+    radial-gradient(58% 52% at 72% 16%, rgba(200, 255, 255, 0.75) 0%, rgba(64, 200, 255, 0.45) 22%, transparent 58%),
+    radial-gradient(128% 128% at 30% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(120, 220, 255, 0.5) 25%, rgba(0, 180, 220, 0.45) 55%, rgba(80, 120, 255, 0.4) 100%),
+    radial-gradient(95% 95% at 60% 44%, #b8f0ff 0%, #40c8ff 30%, #2080ff 60%, #0a2060 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.8),
+    0 18px 44px rgba(64, 180, 255, 0.28),
+    0 0 90px rgba(64, 200, 255, 0.22);
+}
+
+.orb--ember {
+  background:
+    radial-gradient(58% 52% at 72% 16%, rgba(255, 230, 200, 0.8) 0%, rgba(255, 140, 60, 0.45) 22%, transparent 58%),
+    radial-gradient(128% 128% at 30% 24%, rgba(255, 220, 180, 0.45) 0%, rgba(255, 100, 40, 0.5) 35%, rgba(200, 40, 20, 0.45) 70%, rgba(80, 10, 10, 0.5) 100%),
+    radial-gradient(95% 95% at 60% 44%, #ffd0a0 0%, #ff8040 35%, #c02010 70%, #2a0800 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.75),
+    0 18px 44px rgba(255, 100, 40, 0.28),
+    0 0 90px rgba(255, 120, 60, 0.22);
+}
+
+.orb--ocean {
+  background:
+    radial-gradient(58% 52% at 72% 16%, rgba(200, 230, 255, 0.8) 0%, rgba(0, 122, 255, 0.4) 22%, transparent 58%),
+    radial-gradient(128% 128% at 30% 24%, rgba(220, 240, 255, 0.45) 0%, rgba(0, 122, 255, 0.48) 40%, rgba(0, 60, 140, 0.5) 100%),
+    radial-gradient(95% 95% at 60% 44%, #a8d4ff 0%, #007aff 40%, #003d80 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.8),
+    0 18px 44px rgba(0, 122, 255, 0.25),
+    0 0 90px rgba(0, 122, 255, 0.2);
+}
+
+.orb--forest {
+  background:
+    radial-gradient(58% 52% at 72% 16%, rgba(210, 255, 220, 0.75) 0%, rgba(52, 199, 89, 0.42) 22%, transparent 58%),
+    radial-gradient(128% 128% at 30% 24%, rgba(200, 255, 210, 0.4) 0%, rgba(52, 199, 89, 0.48) 40%, rgba(20, 100, 50, 0.5) 100%),
+    radial-gradient(95% 95% at 60% 44%, #b8f0c8 0%, #34c759 40%, #0a4020 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.78),
+    0 18px 44px rgba(52, 199, 89, 0.22),
+    0 0 90px rgba(52, 199, 89, 0.18);
+}
+
+.orb--rose {
+  background:
+    radial-gradient(58% 52% at 72% 16%, rgba(255, 220, 235, 0.8) 0%, rgba(255, 45, 85, 0.42) 22%, transparent 58%),
+    radial-gradient(128% 128% at 30% 24%, rgba(255, 200, 220, 0.42) 0%, rgba(255, 79, 151, 0.48) 45%, rgba(140, 20, 60, 0.5) 100%),
+    radial-gradient(95% 95% at 60% 44%, #ffc0d8 0%, #ff2d55 40%, #4a0820 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.78),
+    0 18px 44px rgba(255, 45, 85, 0.25),
+    0 0 90px rgba(255, 79, 151, 0.2);
 }

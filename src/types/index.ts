@@ -1,4 +1,12 @@
-export type AvatarCategory = "cinematic" | "creative" | "professional";
+export type AvatarCategory = "orbs" | "spark";
+
+export type OrbVariant =
+  | "violet"
+  | "aurora"
+  | "ember"
+  | "ocean"
+  | "forest"
+  | "rose";
 
 export type AvatarEmotion =
   | "neutral"
@@ -27,7 +35,7 @@ export type ConnectorStatus = "connected" | "disconnected" | "error";
 
 export type AvatarGender = "female" | "male";
 
-export type AvatarRenderer = "portrait" | "orb" | "3d";
+export type AvatarRenderer = "orb";
 
 export interface Avatar {
   id: string;
@@ -38,9 +46,8 @@ export interface Avatar {
   personality: string;
   voiceId: string;
   previewLine: string;
-  image?: string;
-  modelUrl?: string;
-  renderer?: AvatarRenderer;
+  renderer: "orb";
+  orbVariant: OrbVariant;
   accentColor: string;
 }
 

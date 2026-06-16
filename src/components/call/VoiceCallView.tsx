@@ -34,7 +34,7 @@ export function VoiceCallView() {
   const [listening, setListening] = useState(false);
   const [lipLevel, setLipLevel] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [status, setStatus] = useState("Tap to talk");
+  const [status, setStatus] = useState("Tap Talk to speak");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
@@ -92,22 +92,38 @@ export function VoiceCallView() {
         await speakWithGrok(reply, avatar.voiceId);
         setSpeaking(false);
         setLipLevel(0);
-        setStatus("Tap to talk");
+        setStatus("Tap Talk to speak");
         setEmotion("happy");
       } catch {
-        setStatus("Something went wrong. Try again.");
+        setStatus("Something went wrong — tap Talk to try again");
         setEmotion("empathetic");
       }
     },
-    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion, addActivity, addMemory, addPendingApproval, pushToast],
+    [
+      avatar,
+      agentName,
+      messages,
+      goals,
+      skills,
+      memories,
+      proactivity,
+      autonomy,
+      apiKeys,
+      addMessage,
+      setEmotion,
+      addActivity,
+      addMemory,
+      addPendingApproval,
+      pushToast,
+    ],
   );
 
   const startListening = useCallback(() => {
-    if (muted || speaking) return;
+    if (muted || speaking || listening) return;
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setStatus("Use Chrome for voice input.");
+      setStatus("Use Chrome for voice input");
       return;
     }
     stopSpeaking();
@@ -125,11 +141,11 @@ export function VoiceCallView() {
     };
     recognition.onerror = () => {
       setListening(false);
-      setStatus("Try again.");
+      setStatus("Didn't catch that — tap Talk to try again");
     };
     recognition.onend = () => setListening(false);
     recognition.start();
-  }, [muted, speaking, handleAgentReply]);
+  }, [muted, speaking, listening, handleAgentReply]);
 
   if (!avatar) return null;
 
@@ -159,10 +175,10 @@ export function VoiceCallView() {
       <button
         type="button"
         onClick={startListening}
-        disabled={speaking || muted}
+        disabled={speaking || muted || listening}
         className="mt-3 rounded-full bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
       >
-        {listening ? "Listening..." : speaking ? "Speaking..." : "Tap to talk"}
+        {listening ? "Listening..." : "Talk"}
       </button>
 
       <CallControls

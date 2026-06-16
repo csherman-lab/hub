@@ -2,12 +2,13 @@
 
 import { useEffect, useId, useRef } from "react";
 import { loadVoiceMateOrbApi } from "@/lib/voicemate-orb/load";
-import type { AvatarEmotion } from "@/types";
+import type { AvatarEmotion, OrbVariant } from "@/types";
 import { cn } from "@/lib/utils";
 import "@/styles/voicemate-orb.css";
 
 interface VoiceMateOrbAvatarProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "hero";
+  variant?: OrbVariant;
   emotion?: AvatarEmotion;
   speaking?: boolean;
   listening?: boolean;
@@ -15,7 +16,9 @@ interface VoiceMateOrbAvatarProps {
   followCursor?: boolean;
   typingTarget?: string | null;
   live?: boolean;
+  interactive?: boolean;
   className?: string;
+  ariaLabel?: string;
 }
 
 const SIZE_CLASS = {
@@ -29,6 +32,7 @@ const SIZE_CLASS = {
 
 export function VoiceMateOrbAvatar({
   size = "md",
+  variant = "violet",
   emotion = "neutral",
   speaking = false,
   listening = false,
@@ -36,7 +40,9 @@ export function VoiceMateOrbAvatar({
   followCursor = true,
   typingTarget = null,
   live = false,
+  interactive = true,
   className,
+  ariaLabel = "VoiceMate",
 }: VoiceMateOrbAvatarProps) {
   const orbRef = useRef<HTMLDivElement>(null);
   const reactId = useId().replace(/:/g, "");
@@ -57,10 +63,15 @@ export function VoiceMateOrbAvatar({
         api.init({
           selector: orb,
           typingTarget,
-          followCursor,
-          ariaLabel: "VoiceMate",
+          followCursor: interactive && followCursor,
+          ariaLabel,
         });
         api.setLive(live);
+        if (!interactive) {
+          orb.setAttribute("role", "presentation");
+          orb.removeAttribute("tabindex");
+          orb.setAttribute("aria-hidden", "true");
+        }
       })
       .catch((error) => {
         console.warn("[VoiceMateOrbAvatar]", error);
@@ -70,7 +81,7 @@ export function VoiceMateOrbAvatar({
       cancelled = true;
       api?.destroy();
     };
-  }, [followCursor, live, shouldAnimate, typingTarget]);
+  }, [ariaLabel, followCursor, interactive, live, shouldAnimate, typingTarget]);
 
   useEffect(() => {
     if (!shouldAnimate) return;
@@ -128,9 +139,9 @@ export function VoiceMateOrbAvatar({
       <div
         ref={orbRef}
         id={orbId}
-        className={cn("orb", SIZE_CLASS[size])}
+        className={cn("orb", SIZE_CLASS[size], `orb--${variant}`)}
         role="img"
-        aria-label="VoiceMate"
+        aria-label={ariaLabel}
       >
         <span className="orb-eyes">
           <i />

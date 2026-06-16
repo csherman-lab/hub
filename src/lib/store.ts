@@ -172,8 +172,14 @@ function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
         : SEED_ACTIVITIES,
   };
 
-  if (migrated.selectedAvatarId === "voice-mate") {
-    migrated.selectedAvatarId = "voicemate";
+  const legacyAvatarIds: Record<string, string> = {
+    "voice-mate": "voicemate",
+    luna: "pulse",
+    alex: "ember",
+  };
+  if (migrated.selectedAvatarId) {
+    migrated.selectedAvatarId =
+      legacyAvatarIds[migrated.selectedAvatarId] ?? migrated.selectedAvatarId;
   }
 
   if (migrated.onboardingComplete && !migrated.selectedAvatarId) {

@@ -5,6 +5,7 @@ import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
 import { getAvatarById } from "@/lib/avatars";
 import { applyChatResult } from "@/lib/chat-side-effects";
+import { captureVideoFrame } from "@/lib/capture-video-frame";
 import { useHubStore } from "@/lib/store";
 import { useToastStore } from "@/lib/toast-store";
 import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
@@ -46,25 +47,32 @@ export function VideoCallView() {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  const attachUserStream = useCallback((stream: MediaStream) => {
+    const video = userVideoRef.current;
+    if (!video) return;
+    video.srcObject = stream;
+    void video.play().catch(() => undefined);
+  }, []);
+
   const startCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
         audio: true,
       });
       streamRef.current = stream;
-      if (userVideoRef.current) userVideoRef.current.srcObject = stream;
+      attachUserStream(stream);
       setCameraError(false);
       setStatus("Tap Talk to speak");
     } catch {
       setCameraError(true);
       setStatus("Camera off — avatar only");
     }
-  }, []);
+  }, [attachUserStream]);
 
   useEffect(() => {
     onLipSync(setLipLevel);
-    startCamera();
+    void startCamera();
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       screenStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -72,6 +80,18 @@ export function VideoCallView() {
       recognitionRef.current?.abort();
     };
   }, [startCamera]);
+
+  useEffect(() => {
+    if (streamRef.current) attachUserStream(streamRef.current);
+  }, [attachUserStream, videoOn, cameraError]);
+
+  const toggleVideo = () => {
+    const next = !videoOn;
+    setVideoOn(next);
+    streamRef.current?.getVideoTracks().forEach((t) => {
+      t.enabled = next;
+    });
+  };
 
   const handleAgentReply = useCallback(
     async (userText: string) => {
@@ -84,6 +104,11 @@ export function VideoCallView() {
       const videoHistory = messages
         .filter((m) => m.channel === "video" || m.channel === "chat")
         .slice(-6);
+
+      let userImage: string | undefined;
+      if (videoOn && userVideoRef.current) {
+        userImage = captureVideoFrame(userVideoRef.current) ?? undefined;
+      }
 
       try {
         const res = await fetch("/api/chat", {
@@ -100,6 +125,7 @@ export function VideoCallView() {
             proactivity,
             autonomy,
             tavilyKey: apiKeys.web_search,
+            userImage,
           }),
         });
         const data = await res.json();
@@ -127,7 +153,24 @@ export function VideoCallView() {
         setStatus("Error — try again");
       }
     },
-    [avatar, agentName, messages, goals, skills, memories, proactivity, autonomy, apiKeys, addMessage, setEmotion, addActivity, addMemory, addPendingApproval, pushToast],
+    [
+      avatar,
+      agentName,
+      messages,
+      goals,
+      skills,
+      memories,
+      proactivity,
+      autonomy,
+      apiKeys,
+      addMessage,
+      setEmotion,
+      addActivity,
+      addMemory,
+      addPendingApproval,
+      pushToast,
+      videoOn,
+    ],
   );
 
   const startListening = useCallback(() => {
@@ -183,7 +226,13 @@ export function VideoCallView() {
         <div className="relative w-full max-w-3xl">
           {screenSharing && (
             <div className="absolute inset-0 z-10 overflow-hidden rounded-2xl">
-              <video ref={screenRef} autoPlay playsInline muted className="h-full w-full object-contain bg-black" />
+              <video
+                ref={screenRef}
+                autoPlay
+                playsInline
+                muted
+                className="h-full w-full bg-black object-contain"
+              />
             </div>
           )}
           <div className={screenSharing ? "opacity-0" : ""}>
@@ -207,17 +256,25 @@ export function VideoCallView() {
       <button
         type="button"
         onClick={startListening}
-        disabled={speaking || muted}
+        disabled={speaking || muted || listening}
         className="absolute left-1/2 top-16 z-10 -translate-x-1/2 rounded-full bg-white/15 px-4 py-1.5 text-sm text-white backdrop-blur-md hover:bg-white/25 disabled:opacity-50"
       >
-        {listening ? "Listening..." : speaking ? "..." : "Talk"}
+        {listening ? "Listening..." : "Talk"}
       </button>
 
       <div className="absolute bottom-24 right-4 z-10 h-28 w-20 overflow-hidden rounded-xl border border-white/20 bg-zinc-900 sm:h-32 sm:w-24">
         {videoOn && !cameraError ? (
-          <video ref={userVideoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+          <video
+            ref={userVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full scale-x-[-1] object-cover"
+          />
         ) : (
-          <div className="flex h-full items-center justify-center text-[10px] text-zinc-500">Camera off</div>
+          <div className="flex h-full items-center justify-center text-[10px] text-zinc-500">
+            Camera off
+          </div>
         )}
       </div>
 
@@ -231,7 +288,7 @@ export function VideoCallView() {
           setMuted(next);
           if (next) stopSpeaking();
         }}
-        onToggleVideo={() => setVideoOn(!videoOn)}
+        onToggleVideo={toggleVideo}
         onToggleScreenShare={toggleScreenShare}
         onEndCall={() => {
           streamRef.current?.getTracks().forEach((t) => t.stop());

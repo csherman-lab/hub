@@ -61,6 +61,8 @@ export interface ChatRequest {
   proactivity?: ProactivityMode;
   autonomy?: AutonomyLevel;
   tavilyKey?: string;
+  /** JPEG data URL from video call — enables Grok vision */
+  userImage?: string;
 }
 
 export interface ChatResult {
@@ -193,6 +195,37 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
   if (!apiKey) {
     const mock = mockResponse(req.message);
     return { ...mock, mode: "mock" };
+  }
+
+  if (req.userImage) {
+    const visionPrompt = `${buildSystemPrompt(req)}
+
+You are on a live video call. You can see the user through their camera in the attached image.
+Describe what you notice naturally when relevant (expression, setting, gestures). Keep replies concise and conversational.`;
+
+    const response = await grokChat({
+      apiKey,
+      systemPrompt: visionPrompt,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: req.userImage, detail: "low" },
+            },
+            { type: "text", text: req.message },
+          ],
+        },
+      ],
+      model: "grok-2-vision-1212",
+      maxTokens: 400,
+    });
+
+    const reply =
+      extractGrokContent(response) ||
+      "I can see you! Let me know what you'd like to talk about.";
+    return sideEffectsToResult({}, reply, "grok");
   }
 
   const { messages, sideEffects } = await runToolLoop(req, apiKey);

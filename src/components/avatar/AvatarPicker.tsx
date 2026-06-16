@@ -1,210 +1,138 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
+import { Check, Volume2 } from "lucide-react";
 import {
   AVATARS,
+  CATEGORY_DESCRIPTIONS,
   CATEGORY_LABELS,
   getAvatarsByCategory,
 } from "@/lib/avatars";
-import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
 import { previewAvatarVoice, stopSpeaking } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import type { Avatar, AvatarCategory } from "@/types";
 
-const CATEGORIES: AvatarCategory[] = ["cinematic", "creative", "professional"];
+const CATEGORIES: AvatarCategory[] = ["orbs", "spark"];
 
 interface AvatarPickerProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
-  compact?: boolean;
-  /** Onboarding: show every avatar without category tabs */
   showAll?: boolean;
 }
 
 export function AvatarPicker({
   selectedId,
   onSelect,
-  compact = false,
   showAll = false,
 }: AvatarPickerProps) {
-  const [activeCategory, setActiveCategory] =
-    useState<AvatarCategory>("cinematic");
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<AvatarCategory>("orbs");
   const [previewingId, setPreviewingId] = useState<string | null>(null);
-  const [lipLevel, setLipLevel] = useState(0);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const categoryAvatars = showAll
-    ? AVATARS
-    : getAvatarsByCategory(activeCategory);
-
-  const focusedId = hoveredId || selectedId;
-  const focused = categoryAvatars.find((a) => a.id === focusedId);
+  const list = showAll ? AVATARS : getAvatarsByCategory(activeCategory);
+  const selected = AVATARS.find((a) => a.id === selectedId);
 
   const speakAvatar = useCallback(async (avatar: Avatar) => {
     stopSpeaking();
     setPreviewingId(avatar.id);
-    const { onLipSync } = await import("@/lib/voice");
-    onLipSync(setLipLevel);
     await previewAvatarVoice(avatar);
     setPreviewingId(null);
-    setLipLevel(0);
   }, []);
-
-  const handleHover = (avatar: Avatar) => {
-    setHoveredId(avatar.id);
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => speakAvatar(avatar), 400);
-  };
-
-  const handleLeave = () => {
-    setHoveredId(null);
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-  };
 
   const handleSelect = (avatar: Avatar) => {
     stopSpeaking();
     onSelect(avatar.id);
-    speakAvatar(avatar);
   };
 
-  useEffect(() => () => {
-    stopSpeaking();
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-  }, []);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 120, behavior: "smooth" });
-  };
+  useEffect(() => () => stopSpeaking(), []);
 
   return (
-    <div className={cn("space-y-4", compact && "space-y-3")}>
-      {/* Category pills */}
+    <div className="space-y-5">
       {!showAll && (
-        <div className="flex gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => {
-                setActiveCategory(cat);
-                stopSpeaking();
-              }}
-              className={cn(
-                "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
-                activeCategory === cat
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400",
-              )}
-            >
-              {CATEGORY_LABELS[cat]}
-            </button>
-          ))}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(cat);
+                  stopSpeaking();
+                }}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  activeCategory === cat
+                    ? "bg-blue-500 text-white shadow-sm"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400",
+                )}
+              >
+                {CATEGORY_LABELS[cat]}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-zinc-500">
+            {CATEGORY_DESCRIPTIONS[activeCategory]}
+          </p>
         </div>
       )}
 
-      {/* Live preview strip */}
-      <AnimatePresence mode="wait">
-        {focused && (
-          <motion.div
-            key={focused.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center gap-4 rounded-2xl border border-zinc-200/80 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <AvatarDisplay
-              avatar={focused}
-              size="md"
-              speaking={previewingId === focused.id}
-              lipSyncLevel={previewingId === focused.id ? lipLevel : 0}
-              animate={previewingId !== focused.id}
-              emotion="happy"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold">{focused.name}</p>
-              <p className="text-xs text-zinc-500">{focused.tagline}</p>
-              <p className="mt-1 line-clamp-2 text-xs italic text-zinc-400">
-                &ldquo;{focused.previewLine}&rdquo;
-              </p>
-            </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {list.map((avatar) => {
+          const isSelected = selectedId === avatar.id;
+          return (
             <button
+              key={avatar.id}
               type="button"
-              onClick={() => speakAvatar(focused)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-              aria-label="Hear voice"
+              onClick={() => handleSelect(avatar)}
+              className={cn(
+                "relative flex flex-col items-center rounded-2xl border-2 p-4 text-center transition-all",
+                isSelected
+                  ? "border-blue-500 bg-blue-50/80 shadow-md ring-2 ring-blue-500/20 dark:bg-blue-950/30"
+                  : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
+              )}
             >
-              <Volume2 className="h-4 w-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Horizontal avatar carousel */}
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => scroll(-1)}
-          className="absolute -left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md dark:bg-zinc-800"
-          aria-label="Previous"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div
-          ref={scrollRef}
-          className="flex gap-2.5 overflow-x-auto px-8 py-1 scrollbar-none"
-          style={{ scrollbarWidth: "none" }}
-        >
-          {categoryAvatars.map((avatar) => {
-            const isSelected = selectedId === avatar.id;
-            const isActive = hoveredId === avatar.id || isSelected;
-
-            return (
-              <motion.button
-                key={avatar.id}
-                type="button"
-                onClick={() => handleSelect(avatar)}
-                onMouseEnter={() => handleHover(avatar)}
-                onMouseLeave={handleLeave}
-                whileTap={{ scale: 0.96 }}
-                className={cn(
-                  "flex shrink-0 flex-col items-center gap-1.5 rounded-xl p-2 transition-colors",
-                  isSelected
-                    ? "bg-blue-50 ring-2 ring-blue-500 dark:bg-blue-950/30"
-                    : isActive
-                      ? "bg-zinc-50 dark:bg-zinc-800/50"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-800/30",
-                )}
-              >
-                <AvatarDisplay
-                  avatar={avatar}
-                  size="sm"
-                  emotion="happy"
-                  speaking={previewingId === avatar.id}
-                  lipSyncLevel={previewingId === avatar.id ? lipLevel : 0}
-                  animate={isActive && previewingId !== avatar.id}
-                />
-                <span className="max-w-[72px] truncate text-[11px] font-medium">
-                  {avatar.name}
+              {isSelected && (
+                <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white">
+                  <Check className="h-3.5 w-3.5" />
                 </span>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => scroll(1)}
-          className="absolute -right-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md dark:bg-zinc-800"
-          aria-label="Next"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+              )}
+              <div className="h-24 w-24">
+                <VoiceMateOrbAvatar
+                  variant={avatar.orbVariant}
+                  size="md"
+                  speaking={previewingId === avatar.id}
+                  followCursor={false}
+                  interactive={false}
+                  ariaLabel={avatar.name}
+                  className="h-full w-full"
+                />
+              </div>
+              <p className="mt-2 font-semibold">{avatar.name}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">{avatar.tagline}</p>
+            </button>
+          );
+        })}
       </div>
+
+      {selected && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              {selected.name} selected
+            </p>
+            <p className="mt-0.5 truncate text-xs italic text-zinc-500">
+              &ldquo;{selected.previewLine}&rdquo;
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => speakAvatar(selected)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
+            aria-label={`Hear ${selected.name}`}
+          >
+            <Volume2 className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

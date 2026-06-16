@@ -1,23 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { PortraitAvatar } from "@/components/avatar/PortraitAvatar";
 import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
-import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import type { Avatar, AvatarEmotion } from "@/types";
 import { cn } from "@/lib/utils";
-
-const Avatar3D = dynamic(
-  () => import("@/components/avatar/Avatar3D").then((m) => m.Avatar3D),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-      </div>
-    ),
-  },
-);
 
 interface LiveAvatarProps {
   avatar: Avatar;
@@ -27,9 +12,6 @@ interface LiveAvatarProps {
   lipSyncLevel?: number;
   size?: "lg" | "xl" | "hero";
   className?: string;
-  /** 3D GLB for calls/video; false = flat portrait */
-  use3D?: boolean;
-  portrait?: boolean;
 }
 
 const SIZE_CLASS = {
@@ -46,57 +28,19 @@ export function LiveAvatar({
   lipSyncLevel = 0,
   size = "hero",
   className,
-  use3D = true,
-  portrait = true,
 }: LiveAvatarProps) {
-  if (avatar.renderer === "orb") {
-    return (
-      <div className={cn("mx-auto", SIZE_CLASS[size], className)}>
-        <VoiceMateOrbAvatar
-          size={size}
-          emotion={emotion}
-          speaking={speaking}
-          listening={listening}
-          lipSyncLevel={lipSyncLevel}
-          live
-          followCursor={false}
-          className="h-full w-full"
-        />
-      </div>
-    );
-  }
-
-  if (use3D && portrait) {
-    return (
-      <div className={cn("mx-auto", SIZE_CLASS[size], className)}>
-        <Avatar3D avatar={avatar} speaking={speaking || listening} />
-      </div>
-    );
-  }
-
-  if (portrait) {
-    return (
-      <PortraitAvatar
-        avatar={avatar}
+  return (
+    <div className={cn("mx-auto", SIZE_CLASS[size], className)}>
+      <VoiceMateOrbAvatar
+        variant={avatar.orbVariant}
+        size={size}
         emotion={emotion}
         speaking={speaking}
         listening={listening}
         lipSyncLevel={lipSyncLevel}
-        size={size}
-        className={className}
-      />
-    );
-  }
-
-  return (
-    <div className={cn("relative", className)}>
-      <AvatarDisplay
-        avatar={avatar}
-        size={size}
-        emotion={emotion}
-        speaking={speaking}
-        lipSyncLevel={lipSyncLevel}
-        animate={!speaking}
+        live
+        followCursor={false}
+        className="h-full w-full"
       />
     </div>
   );

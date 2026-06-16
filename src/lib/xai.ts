@@ -14,9 +14,21 @@ export async function getServerXaiApiKey(override?: string): Promise<string | nu
   return process.env.XAI_API_KEY?.trim() || null;
 }
 
+export interface GrokImagePart {
+  type: "image_url";
+  image_url: { url: string; detail?: "low" | "high" | "auto" };
+}
+
+export interface GrokTextPart {
+  type: "text";
+  text: string;
+}
+
+export type GrokContentPart = GrokTextPart | GrokImagePart;
+
 export interface GrokMessage {
   role: string;
-  content?: string | null;
+  content?: string | GrokContentPart[] | null;
   reasoning_content?: string | null;
   refusal?: string | null;
   tool_calls?: GrokToolCall[];
@@ -100,8 +112,14 @@ export function extractGrokContent(
 ): string {
   if (!message) return "";
   if (typeof message === "string") return message;
+  if (Array.isArray(message.content)) {
+    const textPart = message.content.find(
+      (p): p is GrokTextPart => p.type === "text",
+    );
+    return textPart?.text?.trim() || "";
+  }
   return (
-    message.content?.trim() ||
+    message.content?.toString().trim() ||
     message.reasoning_content?.trim() ||
     message.refusal?.trim() ||
     ""
