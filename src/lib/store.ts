@@ -29,7 +29,7 @@ const DEFAULT_CONNECTORS: Connector[] = [
   {
     id: "xai",
     name: "xAI / Grok",
-    description: "Powers chat and voice — connect in Connectors",
+    description: "Powers chat and voice — set up during onboarding",
     status: "disconnected",
     required: true,
   },
@@ -311,8 +311,8 @@ export const useHubStore = create<HubState & HubActions>()(
     }),
     {
       name: "hub-storage",
-      version: 5,
-      migrate: (persisted) => {
+      version: 6,
+      migrate: (persisted, fromVersion) => {
         const state = persisted as HubState;
         const migrated = {
           ...state,
@@ -326,6 +326,23 @@ export const useHubStore = create<HubState & HubActions>()(
         if (migrated.onboardingComplete && !migrated.selectedAvatarId) {
           migrated.onboardingComplete = false;
           migrated.onboardingStep = 1;
+        }
+        const xaiConnected =
+          migrated.connectors?.find((c) => c.id === "xai")?.status ===
+          "connected";
+        if (migrated.onboardingComplete && !xaiConnected) {
+          migrated.onboardingComplete = false;
+          migrated.onboardingStep = 0;
+        }
+        // Simplified onboarding: Brain → Avatar → Meet (was Goals/Avatar/Behavior/Connect/Meet)
+        if (fromVersion < 6 && !migrated.onboardingComplete) {
+          if (xaiConnected && migrated.selectedAvatarId) {
+            migrated.onboardingStep = 2;
+          } else if (migrated.selectedAvatarId) {
+            migrated.onboardingStep = 0;
+          } else {
+            migrated.onboardingStep = 0;
+          }
         }
         return migrated;
       },

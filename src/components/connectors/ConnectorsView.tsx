@@ -161,7 +161,7 @@ export function ConnectorsView() {
 
       <h1 className="text-2xl font-semibold">Connectors</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        One tap to connect. Gmail and Calendar open Google sign-in. Grok asks for your key once — we store it securely on this device.
+        Connect Gmail, Calendar, Slack, and more — one tap each. Your Grok brain was set up during onboarding; manage it here if you need to change it.
       </p>
 
       <div className="mt-8 space-y-3">
