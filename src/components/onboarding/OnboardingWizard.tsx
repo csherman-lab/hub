@@ -33,7 +33,10 @@ function BrainKeyStep() {
   const checkGrok = async () => {
     setChecking(true);
     try {
-      const res = await fetch("/api/ai/status");
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("/api/ai/status", { signal: controller.signal });
+      window.clearTimeout(timeout);
       const data = await res.json();
       setGrokStatus({
         configured: !!data.configured,
@@ -187,7 +190,6 @@ export function OnboardingWizard() {
   const hydrated = useStoreHydrated();
   const avatar = getAvatarById(selectedAvatarId);
   const brainConnected = Boolean(grokStatus?.configured && grokStatus?.chat);
-  const grokChecked = grokStatus !== null;
 
   useEffect(() => {
     if (!brainConnected) return;
@@ -198,25 +200,11 @@ export function OnboardingWizard() {
   }, [brainConnected]);
 
   useEffect(() => {
-    if (!hydrated || !grokChecked) return;
-    if (onboardingComplete && selectedAvatarId && brainConnected) {
+    if (!hydrated) return;
+    if (onboardingComplete && selectedAvatarId) {
       router.replace("/dashboard");
-      return;
     }
-    if (onboardingComplete && (!selectedAvatarId || !brainConnected)) {
-      useHubStore.setState({
-        onboardingComplete: false,
-        onboardingStep: !brainConnected ? 0 : 1,
-      });
-    }
-  }, [
-    hydrated,
-    grokChecked,
-    onboardingComplete,
-    selectedAvatarId,
-    brainConnected,
-    router,
-  ]);
+  }, [hydrated, onboardingComplete, selectedAvatarId, router]);
 
   const canContinue = () => {
     switch (onboardingStep) {

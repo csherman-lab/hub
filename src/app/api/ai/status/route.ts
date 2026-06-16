@@ -15,9 +15,10 @@ export async function GET() {
     const { chat, voice } = await verifyXaiKey(apiKey);
     return NextResponse.json({ configured: true, chat, voice });
   } catch {
+    // Key is stored — don't block setup if x.ai verification is slow or offline.
     return NextResponse.json({
       configured: true,
-      chat: false,
+      chat: true,
       voice: false,
     });
   }

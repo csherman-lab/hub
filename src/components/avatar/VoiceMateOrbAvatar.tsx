@@ -77,23 +77,27 @@ export function VoiceMateOrbAvatar({
 
     let cancelled = false;
 
-    loadVoiceMateOrbApi().then((api) => {
-      if (cancelled) return;
+    loadVoiceMateOrbApi()
+      .then((api) => {
+        if (cancelled) return;
 
-      if (speaking || lipSyncLevel > 0.05) {
-        api.setStatus({ label: "Speaking", speaking: true });
-      } else if (listening) {
-        api.setStatus({ label: "Listening", listening: true });
-      } else if (emotion === "thinking") {
-        api.setStatus({ label: "Thinking" });
-      } else {
-        api.setStatus({ label: "Ready" });
-      }
+        if (speaking || lipSyncLevel > 0.05) {
+          api.setStatus({ label: "Speaking", speaking: true });
+        } else if (listening) {
+          api.setStatus({ label: "Listening", listening: true });
+        } else if (emotion === "thinking") {
+          api.setStatus({ label: "Thinking" });
+        } else {
+          api.setStatus({ label: "Ready" });
+        }
 
-      if (emotion === "surprised") {
-        api.setExpression("curious", 2600);
-      }
-    });
+        if (emotion === "surprised") {
+          api.setExpression("curious", 2600);
+        }
+      })
+      .catch(() => {
+        /* orb script optional */
+      });
 
     return () => {
       cancelled = true;

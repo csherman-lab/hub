@@ -32,10 +32,19 @@ export interface GrokToolCall {
 
 export async function verifyXaiKey(apiKey: string) {
   const headers = { Authorization: `Bearer ${apiKey}` };
+  const timeoutMs = 5000;
+
+  const fetchWithTimeout = (url: string) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { headers, signal: controller.signal }).finally(() =>
+      clearTimeout(timer),
+    );
+  };
 
   const [modelsRes, voicesRes] = await Promise.all([
-    fetch(`${XAI_BASE}/models`, { headers }),
-    fetch(`${XAI_BASE}/tts/voices`, { headers }),
+    fetchWithTimeout(`${XAI_BASE}/models`),
+    fetchWithTimeout(`${XAI_BASE}/tts/voices`),
   ]);
 
   return {

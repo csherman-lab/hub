@@ -46,6 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[#f5f5f7] text-zinc-900 dark:bg-black dark:text-zinc-100">
         <ThemeProvider>
+          <HubStorageBootstrap />
           <GrokBootstrap />
           <ToastProvider />
           <CommandPalette />

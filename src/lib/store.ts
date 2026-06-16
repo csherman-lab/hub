@@ -80,7 +80,8 @@ const SEED_ACTIVITIES: ActivityItem[] = [
   },
 ];
 
-export const HUB_STORAGE_VERSION = 7;
+export const HUB_STORAGE_KEY = "hub-storage-v2";
+export const HUB_STORAGE_VERSION = 1;
 
 interface HubActions {
   setTheme: (theme: ThemeMode) => void;
@@ -180,17 +181,8 @@ function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
     migrated.onboardingStep = 1;
   }
 
-  const xaiConnected =
-    migrated.connectors.find((c) => c.id === "xai")?.status === "connected";
-
-  if (migrated.onboardingComplete && !xaiConnected) {
-    migrated.onboardingComplete = false;
-    migrated.onboardingStep = 0;
-  }
-
-  if (fromVersion < 6 && !migrated.onboardingComplete) {
-    migrated.onboardingStep =
-      xaiConnected && migrated.selectedAvatarId ? 2 : 0;
+  if (fromVersion < 1 && !migrated.onboardingComplete) {
+    migrated.onboardingStep = migrated.selectedAvatarId ? 1 : 0;
   }
 
   return migrated;
@@ -370,7 +362,7 @@ export const useHubStore = create<HubState & HubActions>()(
       resetHub: () => set(initialState),
     }),
     {
-      name: "hub-storage",
+      name: HUB_STORAGE_KEY,
       version: HUB_STORAGE_VERSION,
       skipHydration: true,
       migrate: migrateHubStorage,
@@ -385,12 +377,7 @@ export const useHubStore = create<HubState & HubActions>()(
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
-          console.warn("Hub storage reset:", error);
-          try {
-            useHubStore.persist.clearStorage();
-          } catch {
-            window.localStorage.removeItem("hub-storage");
-          }
+          console.warn("Hub storage hydration error:", error);
         }
       },
     },
@@ -398,12 +385,14 @@ export const useHubStore = create<HubState & HubActions>()(
 );
 
 export function resetHubStorage() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(HUB_STORAGE_KEY);
+    window.localStorage.removeItem("hub-storage");
+  }
   try {
     useHubStore.persist.clearStorage();
   } catch {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("hub-storage");
-    }
+    /* ignore */
   }
   useHubStore.getState().resetHub();
 }
