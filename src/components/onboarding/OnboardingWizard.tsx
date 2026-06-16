@@ -177,7 +177,7 @@ export function OnboardingWizard() {
     onboardingStep,
     selectedAvatarId,
     agentName,
-    connectors,
+    grokStatus,
     setOnboardingStep,
     setSelectedAvatar,
     setAgentName,
@@ -186,8 +186,15 @@ export function OnboardingWizard() {
 
   const hydrated = useStoreHydrated();
   const avatar = getAvatarById(selectedAvatarId);
-  const brainConnected =
-    connectors.find((c) => c.id === "xai")?.status === "connected";
+  const brainConnected = Boolean(grokStatus?.configured && grokStatus?.chat);
+
+  useEffect(() => {
+    if (!brainConnected) return;
+    const { connectors, connectConnector } = useHubStore.getState();
+    if (connectors.find((c) => c.id === "xai")?.status !== "connected") {
+      connectConnector("xai");
+    }
+  }, [brainConnected]);
 
   useEffect(() => {
     if (!hydrated) return;
