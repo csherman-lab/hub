@@ -29,18 +29,31 @@ export async function POST(req: NextRequest) {
 
   if (connectorId === "xai") {
     try {
-      const { chat } = await verifyXaiKey(key);
+      const verify = verifyXaiKey(key);
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 6000),
+      );
+      const { chat } = await Promise.race([verify, timeout]);
       if (!chat) {
         return NextResponse.json(
           { error: "Could not verify Grok key. Check and try again." },
           { status: 422 },
         );
       }
-    } catch {
-      return NextResponse.json(
-        { error: "Could not verify Grok key. Check and try again." },
-        { status: 422 },
-      );
+    } catch (error) {
+      if (!key.startsWith("xai-")) {
+        return NextResponse.json(
+          { error: "Invalid Grok key format. Keys start with xai-" },
+          { status: 422 },
+        );
+      }
+      // Network timeout — save key so onboarding can continue; chat verifies later.
+      if (error instanceof Error && error.message !== "timeout") {
+        return NextResponse.json(
+          { error: "Could not verify Grok key. Check and try again." },
+          { status: 422 },
+        );
+      }
     }
   }
 

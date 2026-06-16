@@ -159,9 +159,9 @@ function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
     ...raw,
     memories: raw.memories ?? [],
     pendingApprovals: raw.pendingApprovals ?? [],
-    grokStatus: raw.grokStatus ?? null,
+    grokStatus: null,
     hasSeenTips: raw.hasSeenTips ?? false,
-    agentActivity: raw.agentActivity ?? null,
+    agentActivity: null,
     connectors:
       Array.isArray(raw.connectors) && raw.connectors.length > 0
         ? raw.connectors
@@ -369,6 +369,8 @@ export const useHubStore = create<HubState & HubActions>()(
       merge: (persisted, current) => ({
         ...current,
         ...(persisted as Partial<HubState>),
+        grokStatus: null,
+        agentActivity: null,
         connectors:
           Array.isArray((persisted as HubState | undefined)?.connectors) &&
           (persisted as HubState).connectors.length > 0

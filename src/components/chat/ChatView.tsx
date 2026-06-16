@@ -395,7 +395,11 @@ export function ChatView() {
             placeholder="Message your agent..."
             className="flex-1 rounded-full border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800"
           />
-          <Button onClick={() => sendMessage()} disabled={!input.trim() || loading}>
+          <Button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || loading}
+            aria-label="Send message"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

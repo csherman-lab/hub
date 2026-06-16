@@ -12,10 +12,14 @@ export async function GET() {
   }
 
   try {
-    const { chat, voice } = await verifyXaiKey(apiKey);
+    const verify = verifyXaiKey(apiKey);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 4000),
+    );
+    const { chat, voice } = await Promise.race([verify, timeout]);
     return NextResponse.json({ configured: true, chat, voice });
   } catch {
-    // Key is stored — don't block setup if x.ai verification is slow or offline.
+    // Key is stored — unblock onboarding even if x.ai is slow or offline.
     return NextResponse.json({
       configured: true,
       chat: true,

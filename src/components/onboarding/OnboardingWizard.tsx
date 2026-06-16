@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,13 +22,23 @@ import { useStoreHydrated } from "@/hooks/useStoreHydrated";
 
 const STEPS = ["Brain", "Avatar", "Meet"];
 
-function BrainKeyStep() {
+function BrainKeyStep({
+  onBrainConnected,
+}: {
+  onBrainConnected?: () => void;
+}) {
   const [keyInput, setKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { grokStatus, setGrokStatus, connectConnector, disconnectConnector } =
     useHubStore();
+
+  const markConnected = () => {
+    connectConnector("xai");
+    setGrokStatus({ configured: true, chat: true, voice: !!grokStatus?.voice });
+    onBrainConnected?.();
+  };
 
   const checkGrok = async () => {
     setChecking(true);
@@ -44,12 +54,17 @@ function BrainKeyStep() {
         voice: !!data.voice,
       });
       if (data.configured && data.chat) {
-        connectConnector("xai");
+        markConnected();
       } else {
         disconnectConnector("xai");
       }
     } catch {
-      setGrokStatus({ configured: false, chat: false, voice: false });
+      const hasConnector =
+        useHubStore.getState().connectors.find((c) => c.id === "xai")?.status ===
+        "connected";
+      if (!hasConnector) {
+        setGrokStatus({ configured: false, chat: false, voice: false });
+      }
     } finally {
       setChecking(false);
     }
@@ -76,9 +91,9 @@ function BrainKeyStep() {
         setError(data.error || "Could not verify your key. Try again.");
         return;
       }
-      connectConnector("xai");
+      markConnected();
       setKeyInput("");
-      await checkGrok();
+      void checkGrok();
     } catch {
       setError("Something went wrong. Try again.");
     } finally {
@@ -86,7 +101,10 @@ function BrainKeyStep() {
     }
   };
 
-  const connected = grokStatus?.configured && grokStatus?.chat;
+  const connected =
+    useHubStore((s) => s.connectors.find((c) => c.id === "xai")?.status ===
+      "connected") ||
+    (grokStatus?.configured && grokStatus?.chat);
 
   return (
     <div className="space-y-5">
@@ -181,6 +199,7 @@ export function OnboardingWizard() {
     selectedAvatarId,
     agentName,
     grokStatus,
+    connectors,
     setOnboardingStep,
     setSelectedAvatar,
     setAgentName,
@@ -189,28 +208,48 @@ export function OnboardingWizard() {
 
   const hydrated = useStoreHydrated();
   const avatar = getAvatarById(selectedAvatarId);
-  const brainConnected = Boolean(grokStatus?.configured && grokStatus?.chat);
-
-  useEffect(() => {
-    if (!brainConnected) return;
-    const { connectors, connectConnector } = useHubStore.getState();
-    if (connectors.find((c) => c.id === "xai")?.status !== "connected") {
-      connectConnector("xai");
-    }
-  }, [brainConnected]);
+  const navigatingAway = useRef(false);
+  const xaiConnectorConnected =
+    connectors.find((c) => c.id === "xai")?.status === "connected";
+  const brainConnected = Boolean(
+    xaiConnectorConnected || (grokStatus?.configured && grokStatus?.chat),
+  );
 
   useEffect(() => {
     if (!hydrated) return;
+    if (onboardingStep === 2 && !selectedAvatarId) {
+      setOnboardingStep(1);
+    }
+  }, [hydrated, onboardingStep, selectedAvatarId, setOnboardingStep]);
+
+  useEffect(() => {
+    if (!brainConnected) return;
+    const { connectConnector: connect } = useHubStore.getState();
+    if (connectors.find((c) => c.id === "xai")?.status !== "connected") {
+      connect("xai");
+    }
+  }, [brainConnected, connectors]);
+
+  useEffect(() => {
+    if (!hydrated || navigatingAway.current) return;
     if (onboardingComplete && selectedAvatarId) {
       router.replace("/dashboard");
     }
   }, [hydrated, onboardingComplete, selectedAvatarId, router]);
+
+  const finishOnboarding = (path = "/dashboard") => {
+    navigatingAway.current = true;
+    completeOnboarding();
+    router.push(path);
+  };
 
   const canContinue = () => {
     switch (onboardingStep) {
       case 0:
         return brainConnected;
       case 1:
+        return !!selectedAvatarId;
+      case 2:
         return !!selectedAvatarId;
       default:
         return true;
@@ -221,8 +260,7 @@ export function OnboardingWizard() {
     if (onboardingStep < STEPS.length - 1) {
       setOnboardingStep(onboardingStep + 1);
     } else {
-      completeOnboarding();
-      router.push("/dashboard");
+      finishOnboarding();
     }
   };
 
@@ -272,6 +310,7 @@ export function OnboardingWizard() {
               <AvatarPicker
                 selectedId={selectedAvatarId}
                 onSelect={setSelectedAvatar}
+                showAll
               />
               <div className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
                 <Camera className="mx-auto h-8 w-8 text-zinc-400" />
@@ -309,18 +348,18 @@ export function OnboardingWizard() {
               </p>
               <p className="text-sm font-medium">How would you like to start?</p>
               <div className="flex gap-3">
-                <Button onClick={() => router.push("/dashboard/chat")}>
+                <Button onClick={() => finishOnboarding("/dashboard/chat")}>
                   Text
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => router.push("/dashboard/call/voice")}
+                  onClick={() => finishOnboarding("/dashboard/call/voice")}
                 >
                   Call
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => router.push("/dashboard/call/video")}
+                  onClick={() => finishOnboarding("/dashboard/call/video")}
                 >
                   Video
                 </Button>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
 import {
+  AVATARS,
   CATEGORY_LABELS,
   getAvatarsByCategory,
 } from "@/lib/avatars";
@@ -18,12 +19,15 @@ interface AvatarPickerProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   compact?: boolean;
+  /** Onboarding: show every avatar without category tabs */
+  showAll?: boolean;
 }
 
 export function AvatarPicker({
   selectedId,
   onSelect,
   compact = false,
+  showAll = false,
 }: AvatarPickerProps) {
   const [activeCategory, setActiveCategory] =
     useState<AvatarCategory>("cinematic");
@@ -31,7 +35,9 @@ export function AvatarPicker({
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [lipLevel, setLipLevel] = useState(0);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const categoryAvatars = getAvatarsByCategory(activeCategory);
+  const categoryAvatars = showAll
+    ? AVATARS
+    : getAvatarsByCategory(activeCategory);
 
   const focusedId = hoveredId || selectedId;
   const focused = categoryAvatars.find((a) => a.id === focusedId);
@@ -76,26 +82,28 @@ export function AvatarPicker({
   return (
     <div className={cn("space-y-4", compact && "space-y-3")}>
       {/* Category pills */}
-      <div className="flex gap-2">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => {
-              setActiveCategory(cat);
-              stopSpeaking();
-            }}
-            className={cn(
-              "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
-              activeCategory === cat
-                ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400",
-            )}
-          >
-            {CATEGORY_LABELS[cat]}
-          </button>
-        ))}
-      </div>
+      {!showAll && (
+        <div className="flex gap-2">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => {
+                setActiveCategory(cat);
+                stopSpeaking();
+              }}
+              className={cn(
+                "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
+                activeCategory === cat
+                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400",
+              )}
+            >
+              {CATEGORY_LABELS[cat]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Live preview strip */}
       <AnimatePresence mode="wait">
