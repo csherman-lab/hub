@@ -2,10 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { Send, Trash2, Copy, Check, Download, RotateCcw } from "lucide-react";
 import Markdown from "react-markdown";
 import { Button } from "@/components/ui/Button";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { PopIn } from "@/components/motion/HubMotion";
+import { fadeUp, transitionFast } from "@/lib/motion";
 import { getAvatarById } from "@/lib/avatars";
 import {
   applyChatResult,
@@ -279,7 +282,7 @@ export function ChatView() {
 
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
         {chatMessages.length === 0 && !streamingText && !loading && (
-          <div className="flex h-full flex-col items-center justify-center text-center">
+          <PopIn className="flex h-full flex-col items-center justify-center text-center">
             <AvatarDisplay avatar={avatar} size="md" emotion="happy" />
             <p className="mt-4 text-lg font-medium">
               Hey! I&apos;m {agentName || avatar.name}.
@@ -288,24 +291,31 @@ export function ChatView() {
               I can read your inbox, check your calendar, search the web, and draft emails, with your approval.
             </p>
             <div className="mt-6 flex max-w-md flex-wrap justify-center gap-2">
-              {QUICK_ACTIONS.map((action) => (
-                <button
+              {QUICK_ACTIONS.map((action, i) => (
+                <motion.button
                   key={action}
                   type="button"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...transitionFast, delay: 0.08 + i * 0.05 }}
                   onClick={() => sendMessage(action)}
-                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-700"
+                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-600 transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-700"
                 >
                   {action}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </PopIn>
         )}
 
         <div className="mx-auto max-w-2xl space-y-4">
           {chatMessages.map((msg) => (
-            <div
+            <motion.div
               key={msg.id}
+              initial="hidden"
+              animate="show"
+              variants={fadeUp}
+              transition={transitionFast}
               className={cn(
                 "group flex flex-col",
                 msg.role === "user" ? "items-end" : "items-start",
@@ -355,7 +365,7 @@ export function ChatView() {
               <span className="mt-1 px-1 text-[10px] text-zinc-400">
                 {formatTime(msg.timestamp)}
               </span>
-            </div>
+            </motion.div>
           ))}
           {streamingText && (
             <div className="flex justify-start">

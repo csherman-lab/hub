@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Home,
   MessageSquare,
@@ -61,20 +62,22 @@ function NavLink({
       : pathname?.startsWith(href);
 
   return (
-    <Link
-      href={href}
-      title={collapsed ? label : undefined}
-      className={cn(
-        "flex items-center rounded-xl text-sm font-medium transition-colors",
-        collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
-        active
-          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-          : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800",
-      )}
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      {!collapsed && <span className="truncate">{label}</span>}
-    </Link>
+    <motion.div whileHover={{ x: collapsed ? 0 : 2 }} whileTap={{ scale: 0.98 }}>
+      <Link
+        href={href}
+        title={collapsed ? label : undefined}
+        className={cn(
+          "flex items-center rounded-xl text-sm font-medium transition-colors duration-200",
+          collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
+          active
+            ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+            : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800",
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        {!collapsed && <span className="truncate">{label}</span>}
+      </Link>
+    </motion.div>
   );
 }
 
@@ -162,11 +165,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 isCollapsed ? "p-2" : "p-3",
               )}
             >
-              <AvatarDisplay
-                avatar={avatar}
-                size={isCollapsed ? "sm" : "xs"}
-                emotion={currentEmotion}
-              />
+              <div className={cn(!isCollapsed && "animate-hub-float")}>
+                <AvatarDisplay
+                  avatar={avatar}
+                  size={isCollapsed ? "sm" : "xs"}
+                  emotion={currentEmotion}
+                />
+              </div>
             </Link>
           )}
         </div>

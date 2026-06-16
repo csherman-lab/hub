@@ -24,7 +24,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProactiveSuggestions } from "@/components/dashboard/ProactiveSuggestions";
+import { FadeIn, Stagger, StaggerItem, AnimatedCard } from "@/components/motion/HubMotion";
 import { getAvatarById } from "@/lib/avatars";
+import {
+  ACTIVITY_COLORS,
+  getStatTileConfig,
+  QUICK_ACTION_COLORS,
+  type StatKind,
+} from "@/lib/stat-variants";
 import { useHubStore } from "@/lib/store";
 import { useToastStore } from "@/lib/toast-store";
 import { formatGoalLabel } from "@/lib/goal-labels";
@@ -63,41 +70,32 @@ function formatToday() {
 }
 
 function StatPill({
+  kind,
   label,
   value,
-  icon: Icon,
-  tone = "default",
   href,
 }: {
+  kind: StatKind;
   label: string;
-  value: string | number;
-  icon: typeof MessageSquare;
-  tone?: "default" | "warn" | "success";
+  value: number;
   href?: string;
 }) {
-  const toneClass =
-    tone === "warn"
-      ? "text-amber-600 dark:text-amber-400"
-      : tone === "success"
-        ? "text-emerald-600 dark:text-emerald-400"
-        : "text-zinc-900 dark:text-zinc-100";
+  const config = getStatTileConfig(kind, value);
+  const Icon = config.icon;
 
   const inner = (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div
-        className={cn(
-          "rounded-lg p-2",
-          tone === "warn"
-            ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40"
-            : tone === "success"
-              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40"
-              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
-        )}
-      >
+    <div
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 transition-colors duration-200",
+        config.cellClass,
+        config.pulse && "animate-hub-glow-amber",
+      )}
+    >
+      <div className={cn("rounded-xl p-2.5 transition-transform duration-200", config.iconClass)}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <p className={cn("text-lg font-semibold tabular-nums leading-none", toneClass)}>
+        <p className={cn("text-lg font-semibold tabular-nums leading-none", config.valueClass)}>
           {value}
         </p>
         <p className="mt-1 truncate text-xs text-zinc-500">{label}</p>
@@ -109,7 +107,7 @@ function StatPill({
     return (
       <Link
         href={href}
-        className="block transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+        className="block transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/30"
       >
         {inner}
       </Link>
@@ -238,45 +236,46 @@ export function HomeView() {
 
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-8">
-      <header className="mb-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-sm text-zinc-500">{formatToday()}</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
-              {getGreeting()}
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Overview of your agent, apps, and recent work
-            </p>
+      <FadeIn>
+        <header className="mb-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-zinc-500">{formatToday()}</p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+                {getGreeting()}
+              </h1>
+              <p className="mt-1 text-sm text-zinc-500">
+                Overview of your agent, apps, and recent work
+              </p>
+            </div>
+            <Link
+              href="/dashboard/chat"
+              className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-600 hover:shadow-md active:scale-[0.98]"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Start chat
+            </Link>
           </div>
-          <Link
-            href="/dashboard/chat"
-            className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-600"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Start chat
-          </Link>
-        </div>
-        {goals.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {goals.map((g) => (
-              <span
-                key={g}
-                className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-              >
-                {formatGoalLabel(g)}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
+          {goals.length > 0 && (
+            <Stagger className="mt-4 flex flex-wrap gap-1.5">
+              {goals.map((g) => (
+                <StaggerItem key={g}>
+                  <span className="inline-block rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                    {formatGoalLabel(g)}
+                  </span>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          )}
+        </header>
+      </FadeIn>
 
       {pendingApprovals.length > 0 && (
-        <section className="mb-6 space-y-3">
+        <FadeIn delay={0.05} className="mb-6 space-y-3">
           {pendingApprovals.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900 dark:bg-amber-950/20"
+              className="hub-card animate-hub-glow-amber overflow-hidden bg-amber-50/80 p-4 dark:bg-amber-950/20"
             >
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/40">
@@ -314,41 +313,37 @@ export function HomeView() {
               </div>
             </div>
           ))}
-        </section>
+        </FadeIn>
       )}
 
-      <section className="mb-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="grid grid-cols-2 divide-x divide-y divide-zinc-100 dark:divide-zinc-800 sm:grid-cols-4 sm:divide-y-0">
-          <StatPill
-            label="Needs approval"
-            value={stats.approvals}
-            icon={AlertCircle}
-            tone={stats.approvals > 0 ? "warn" : "default"}
-          />
-          <StatPill
-            label="Conversations"
-            value={stats.messages}
-            icon={MessageSquare}
-            href="/dashboard/chat"
-          />
-          <StatPill
-            label="Skills taught"
-            value={stats.skills}
-            icon={Sparkles}
-            href="/dashboard/skills"
-          />
-          <StatPill
-            label="Apps connected"
-            value={stats.connected}
-            icon={Plug}
-            tone={stats.connected > 0 ? "success" : "default"}
-            href="/dashboard/connectors"
-          />
-        </div>
-      </section>
+      <FadeIn delay={0.08}>
+        <section className="hub-card mb-6 overflow-hidden bg-white dark:bg-zinc-900">
+          <div className="grid grid-cols-2 divide-x divide-y divide-zinc-100 dark:divide-zinc-800 sm:grid-cols-4 sm:divide-y-0">
+            <StatPill kind="approval" label="Needs approval" value={stats.approvals} />
+            <StatPill
+              kind="chat"
+              label="Conversations"
+              value={stats.messages}
+              href="/dashboard/chat"
+            />
+            <StatPill
+              kind="skills"
+              label="Skills taught"
+              value={stats.skills}
+              href="/dashboard/skills"
+            />
+            <StatPill
+              kind="connectors"
+              label="Apps connected"
+              value={stats.connected}
+              href="/dashboard/connectors"
+            />
+          </div>
+        </section>
+      </FadeIn>
 
       <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-        <section className="flex min-h-[280px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <AnimatedCard delay={0.1} className="flex min-h-[280px] flex-col overflow-hidden bg-white dark:bg-zinc-900">
           <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
             <div className="flex items-center gap-2">
               <Sun className="h-4 w-4 text-amber-500" />
@@ -366,7 +361,11 @@ export function HomeView() {
           </div>
           <div className="flex flex-1 flex-col p-5">
             {briefingLoading ? (
-              <p className="text-sm text-zinc-400">Preparing your briefing…</p>
+              <div className="space-y-2">
+                <div className="h-3 w-3/4 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
+                <div className="h-3 w-full rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
+                <div className="h-3 w-5/6 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
+              </div>
             ) : (
               <p className="flex-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                 {briefing ||
@@ -380,36 +379,52 @@ export function HomeView() {
               </p>
             )}
           </div>
-        </section>
+        </AnimatedCard>
 
-        <section className="flex min-h-[280px] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <AnimatedCard delay={0.14} className="flex min-h-[280px] flex-col overflow-hidden bg-white dark:bg-zinc-900">
           <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
             <h2 className="text-sm font-semibold">Quick actions</h2>
             <p className="mt-0.5 text-xs text-zinc-500">Jump in anywhere</p>
           </div>
           <div className="flex flex-1 flex-col justify-center divide-y divide-zinc-100 dark:divide-zinc-800">
-            {QUICK_ACTIONS.map(({ href, label, desc, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-              >
-                <div className="rounded-lg bg-zinc-100 p-2 text-zinc-600 transition-colors group-hover:bg-blue-100 group-hover:text-blue-600 dark:bg-zinc-800 dark:text-zinc-300 dark:group-hover:bg-blue-900/40 dark:group-hover:text-blue-400">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="text-xs text-zinc-500">{desc}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-300 transition-colors group-hover:text-blue-500" />
-              </Link>
-            ))}
+            {QUICK_ACTIONS.map(({ href, label, desc, icon: Icon }) => {
+              const colors = QUICK_ACTION_COLORS[href];
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "group flex items-center gap-3 px-5 py-3 transition-all duration-200",
+                    colors?.hover,
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "rounded-xl p-2 transition-transform duration-200 group-hover:scale-105",
+                      colors?.icon ?? "bg-zinc-100 text-zinc-600 dark:bg-zinc-800",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-zinc-500">{desc}</p>
+                  </div>
+                  <ArrowRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-zinc-300 transition-all duration-200 group-hover:translate-x-0.5",
+                      colors?.arrow,
+                    )}
+                  />
+                </Link>
+              );
+            })}
           </div>
-        </section>
+        </AnimatedCard>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-5">
-        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-3">
+        <AnimatedCard delay={0.18} className="overflow-hidden bg-white dark:bg-zinc-900 lg:col-span-3">
           <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
             <h2 className="text-sm font-semibold">Recent activity</h2>
             {activities.length > 5 && (
@@ -435,45 +450,40 @@ export function HomeView() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-2">
+              <Stagger className="space-y-2">
                 {activities.slice(0, 6).map((item) => {
                   const Icon = ACTIVITY_ICONS[item.type];
+                  const colors = item.needsApproval
+                    ? ACTIVITY_COLORS.draft
+                    : ACTIVITY_COLORS[item.type];
                   return (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                    >
-                      <div
-                        className={cn(
-                          "rounded-lg p-2",
-                          item.needsApproval
-                            ? "bg-amber-100 text-amber-600"
-                            : "bg-blue-100 text-blue-600 dark:bg-blue-900/40",
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
+                    <StaggerItem key={item.id}>
+                      <div className="flex items-start gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                        <div className={cn("rounded-xl p-2", colors.bg, colors.text)}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{item.title}</p>
+                          <p className="text-sm text-zinc-500">{item.detail}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1 text-xs text-zinc-400">
+                          <Clock className="h-3 w-3" />
+                          {new Date(item.timestamp).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{item.title}</p>
-                        <p className="text-sm text-zinc-500">{item.detail}</p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1 text-xs text-zinc-400">
-                        <Clock className="h-3 w-3" />
-                        {new Date(item.timestamp).toLocaleTimeString([], {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </div>
-                    </div>
+                    </StaggerItem>
                   );
                 })}
-              </div>
+              </Stagger>
             )}
           </div>
-        </section>
+        </AnimatedCard>
 
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <AnimatedCard delay={0.22} className="overflow-hidden bg-white dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
               <h2 className="text-sm font-semibold">Connected apps</h2>
               <Link
@@ -486,11 +496,11 @@ export function HomeView() {
             <div className="p-5">
               <ConnectedAppsSummary />
             </div>
-          </section>
+          </AnimatedCard>
 
-          <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <AnimatedCard delay={0.26} className="overflow-hidden bg-white dark:bg-zinc-900">
             <ProactiveSuggestions embedded />
-          </section>
+          </AnimatedCard>
         </div>
       </div>
     </div>

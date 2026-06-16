@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ConnectorIcon } from "@/components/connectors/ConnectorIcon";
+import { FadeIn, Stagger, StaggerItem } from "@/components/motion/HubMotion";
 import { CONNECTOR_META, PLANNED_CONNECTORS } from "@/lib/connectors/config";
 import { useHubStore } from "@/lib/store";
 import type { ConnectorId } from "@/types";
@@ -151,33 +152,37 @@ export function ConnectorsView() {
   return (
     <div className="mx-auto max-w-2xl p-4 pb-8 md:p-10">
       {toast && (
-        <div className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-900 px-5 py-3 text-sm text-white shadow-lg">
-          {toast}
-          <button type="button" onClick={() => setToast(null)} aria-label="Dismiss">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        <FadeIn className="fixed left-1/2 top-6 z-50 -translate-x-1/2">
+          <div className="flex items-center gap-2 rounded-full bg-zinc-900 px-5 py-3 text-sm text-white shadow-lg">
+            {toast}
+            <button type="button" onClick={() => setToast(null)} aria-label="Dismiss">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </FadeIn>
       )}
 
-      <h1 className="text-2xl font-semibold">Connectors</h1>
-      <p className="mt-2 text-sm text-zinc-500">
-        Connect Gmail, Calendar, Slack, and more, one tap each. Your Grok brain was set up during onboarding; manage it here if you need to change it.
-      </p>
+      <FadeIn>
+        <h1 className="text-2xl font-semibold">Connectors</h1>
+        <p className="mt-2 text-sm text-zinc-500">
+          Connect Gmail, Calendar, Slack, and more, one tap each. Your Grok brain was set up during onboarding; manage it here if you need to change it.
+        </p>
+      </FadeIn>
 
-      <div className="mt-8 space-y-3">
+      <Stagger className="mt-8 space-y-3">
         {CONNECTOR_META.map((meta) => {
           const connected = isConnected(meta.id);
           const info = accountInfo[meta.id];
           const isExpanded = expandedKey === meta.id;
 
           return (
+            <StaggerItem key={meta.id}>
             <div
-              key={meta.id}
               className={cn(
-                "overflow-hidden rounded-2xl border bg-white transition-colors dark:bg-zinc-900",
+                "hub-card overflow-hidden bg-white transition-all duration-200 dark:bg-zinc-900",
                 connected
                   ? "border-emerald-200 dark:border-emerald-900"
-                  : "border-zinc-200 dark:border-zinc-800",
+                  : "",
               )}
             >
               <div className="flex items-center gap-4 p-4">
@@ -295,9 +300,10 @@ export function ConnectorsView() {
                 </div>
               )}
             </div>
+            </StaggerItem>
           );
         })}
-      </div>
+      </Stagger>
 
       <div className="mt-10">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">

@@ -3,6 +3,8 @@
 import { useHubStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { Lightbulb, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Stagger, StaggerItem } from "@/components/motion/HubMotion";
 import { cn } from "@/lib/utils";
 import type { Connector } from "@/types";
 
@@ -55,19 +57,22 @@ export function ProactiveSuggestions({ embedded = false }: { embedded?: boolean 
           {proactivity === "proactive" ? "Suggested for you" : "Ideas"}
         </h2>
       </div>
-      <div className={cn("space-y-2", embedded ? "p-5" : "mt-3")}>
+      <Stagger className={cn("space-y-2", embedded ? "p-5" : "mt-3")}>
         {picks.map((s) => (
-          <button
-            key={s.text}
-            type="button"
-            onClick={() => router.push(s.href)}
-            className="flex w-full items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3 text-left text-sm transition-colors hover:bg-blue-50 dark:bg-zinc-800/50 dark:hover:bg-blue-950/30"
-          >
-            <span className="text-zinc-700 dark:text-zinc-300">{s.text}</span>
-            <ArrowRight className="h-4 w-4 shrink-0 text-blue-500" />
-          </button>
+          <StaggerItem key={s.text}>
+            <motion.button
+              type="button"
+              onClick={() => router.push(s.href)}
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.99 }}
+              className="flex w-full items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3 text-left text-sm transition-colors hover:bg-amber-50 dark:bg-zinc-800/50 dark:hover:bg-amber-950/20"
+            >
+              <span className="text-zinc-700 dark:text-zinc-300">{s.text}</span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-amber-500" />
+            </motion.button>
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
     </div>
   );
 }

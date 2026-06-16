@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { FadeIn, Stagger, StaggerItem } from "@/components/motion/HubMotion";
 import { useHubStore } from "@/lib/store";
 
 const PRESET_SKILLS = [
@@ -36,21 +37,23 @@ export function SkillsView() {
 
   return (
     <div className="mx-auto max-w-2xl p-4 pb-8 md:p-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Skills</h1>
-          <p className="mt-2 text-sm text-zinc-500">
-            Teach your agent rules in plain English, no code required.
-          </p>
+      <FadeIn>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Skills</h1>
+            <p className="mt-2 text-sm text-zinc-500">
+              Teach your agent rules in plain English, no code required.
+            </p>
+          </div>
+          <Button size="sm" onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4" />
+            Add skill
+          </Button>
         </div>
-        <Button size="sm" onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4" />
-          Add skill
-        </Button>
-      </div>
+      </FadeIn>
 
       {showForm && (
-        <div className="mt-6 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <FadeIn className="mt-6 space-y-4 hub-card bg-white p-5 dark:bg-zinc-900">
           <div>
             <label className="text-sm font-medium">When I say or ask...</label>
             <input
@@ -77,7 +80,7 @@ export function SkillsView() {
               Cancel
             </Button>
           </div>
-        </div>
+        </FadeIn>
       )}
 
       {skills.length === 0 && !showForm && (
@@ -100,41 +103,42 @@ export function SkillsView() {
         </div>
       )}
 
-      <div className="mt-8 space-y-3">
+      <Stagger className="mt-8 space-y-3">
         {skills.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
-            <Sparkles className="mx-auto h-8 w-8 text-zinc-400" />
-            <p className="mt-3 text-sm font-medium">No skills yet</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              Example: &quot;Every Friday, send me a recap of the week&quot;
-            </p>
-          </div>
+          <StaggerItem>
+            <div className="hub-card border-dashed p-10 text-center">
+              <Sparkles className="mx-auto h-8 w-8 text-violet-400" />
+              <p className="mt-3 text-sm font-medium">No skills yet</p>
+              <p className="mt-1 text-sm text-zinc-500">
+                Example: &quot;Every Friday, send me a recap of the week&quot;
+              </p>
+            </div>
+          </StaggerItem>
         ) : (
           skills.map((skill) => (
-            <div
-              key={skill.id}
-              className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-zinc-500">When</p>
-                  <p className="font-medium">&quot;{skill.trigger}&quot;</p>
-                  <p className="mt-3 text-sm text-zinc-500">Then</p>
-                  <p className="text-sm">{skill.action}</p>
+            <StaggerItem key={skill.id}>
+              <div className="hub-card bg-white p-5 dark:bg-zinc-900">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-zinc-500">When</p>
+                    <p className="font-medium">&quot;{skill.trigger}&quot;</p>
+                    <p className="mt-3 text-sm text-zinc-500">Then</p>
+                    <p className="text-sm">{skill.action}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeSkill(skill.id)}
+                    className="text-zinc-400 transition-colors hover:text-red-500"
+                    aria-label="Delete skill"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeSkill(skill.id)}
-                  className="text-zinc-400 hover:text-red-500"
-                  aria-label="Delete skill"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
               </div>
-            </div>
+            </StaggerItem>
           ))
         )}
-      </div>
+      </Stagger>
     </div>
   );
 }
