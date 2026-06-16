@@ -187,6 +187,7 @@ export function OnboardingWizard() {
   const hydrated = useStoreHydrated();
   const avatar = getAvatarById(selectedAvatarId);
   const brainConnected = Boolean(grokStatus?.configured && grokStatus?.chat);
+  const grokChecked = grokStatus !== null;
 
   useEffect(() => {
     if (!brainConnected) return;
@@ -197,7 +198,7 @@ export function OnboardingWizard() {
   }, [brainConnected]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !grokChecked) return;
     if (onboardingComplete && selectedAvatarId && brainConnected) {
       router.replace("/dashboard");
       return;
@@ -210,11 +211,11 @@ export function OnboardingWizard() {
     }
   }, [
     hydrated,
+    grokChecked,
     onboardingComplete,
     selectedAvatarId,
     brainConnected,
     router,
-    setOnboardingStep,
   ]);
 
   const canContinue = () => {

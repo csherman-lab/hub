@@ -80,6 +80,8 @@ const SEED_ACTIVITIES: ActivityItem[] = [
   },
 ];
 
+export const HUB_STORAGE_VERSION = 7;
+
 interface HubActions {
   setTheme: (theme: ThemeMode) => void;
   setOnboardingStep: (step: number) => void;
@@ -135,6 +137,64 @@ const initialState: HubState = {
   hasSeenTips: false,
   agentActivity: null,
 };
+
+function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
+  const base: HubState = { ...initialState };
+
+  if (!persisted || typeof persisted !== "object") {
+    return base;
+  }
+
+  // Recover from accidentally double-wrapped `{ state, version }` payloads.
+  const raw =
+    "state" in persisted &&
+    (persisted as { state?: unknown }).state &&
+    typeof (persisted as { state: unknown }).state === "object"
+      ? (persisted as { state: Partial<HubState> }).state
+      : (persisted as Partial<HubState>);
+
+  const migrated: HubState = {
+    ...base,
+    ...raw,
+    memories: raw.memories ?? [],
+    pendingApprovals: raw.pendingApprovals ?? [],
+    grokStatus: raw.grokStatus ?? null,
+    hasSeenTips: raw.hasSeenTips ?? false,
+    agentActivity: raw.agentActivity ?? null,
+    connectors:
+      Array.isArray(raw.connectors) && raw.connectors.length > 0
+        ? raw.connectors
+        : DEFAULT_CONNECTORS,
+    activities:
+      Array.isArray(raw.activities) && raw.activities.length > 0
+        ? raw.activities
+        : SEED_ACTIVITIES,
+  };
+
+  if (migrated.selectedAvatarId === "voice-mate") {
+    migrated.selectedAvatarId = "voicemate";
+  }
+
+  if (migrated.onboardingComplete && !migrated.selectedAvatarId) {
+    migrated.onboardingComplete = false;
+    migrated.onboardingStep = 1;
+  }
+
+  const xaiConnected =
+    migrated.connectors.find((c) => c.id === "xai")?.status === "connected";
+
+  if (migrated.onboardingComplete && !xaiConnected) {
+    migrated.onboardingComplete = false;
+    migrated.onboardingStep = 0;
+  }
+
+  if (fromVersion < 6 && !migrated.onboardingComplete) {
+    migrated.onboardingStep =
+      xaiConnected && migrated.selectedAvatarId ? 2 : 0;
+  }
+
+  return migrated;
+}
 
 export const useHubStore = create<HubState & HubActions>()(
   persist(
@@ -311,50 +371,39 @@ export const useHubStore = create<HubState & HubActions>()(
     }),
     {
       name: "hub-storage",
-      version: 7,
-      migrate: (persisted, fromVersion) => {
-        const state = persisted as HubState;
-        const migrated = {
-          ...state,
-          memories: state.memories ?? [],
-          pendingApprovals: state.pendingApprovals ?? [],
-          grokStatus: state.grokStatus ?? null,
-          hasSeenTips: state.hasSeenTips ?? false,
-          agentActivity: state.agentActivity ?? null,
-        };
-        if (migrated.selectedAvatarId === "voice-mate") {
-          migrated.selectedAvatarId = "voicemate";
-        }
-        // Repair inconsistent state that caused dashboard ↔ onboarding redirect loops
-        if (migrated.onboardingComplete && !migrated.selectedAvatarId) {
-          migrated.onboardingComplete = false;
-          migrated.onboardingStep = 1;
-        }
-        const xaiConnected =
-          migrated.connectors?.find((c) => c.id === "xai")?.status ===
-          "connected";
-        if (migrated.onboardingComplete && !xaiConnected) {
-          migrated.onboardingComplete = false;
-          migrated.onboardingStep = 0;
-        }
-        // Simplified onboarding: Brain → Avatar → Meet (was Goals/Avatar/Behavior/Connect/Meet)
-        if (fromVersion < 6 && !migrated.onboardingComplete) {
-          if (xaiConnected && migrated.selectedAvatarId) {
-            migrated.onboardingStep = 2;
-          } else if (migrated.selectedAvatarId) {
-            migrated.onboardingStep = 0;
-          } else {
-            migrated.onboardingStep = 0;
-          }
-        }
-        return migrated;
-      },
+      version: HUB_STORAGE_VERSION,
+      skipHydration: true,
+      migrate: migrateHubStorage,
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<HubState>),
+        connectors:
+          Array.isArray((persisted as HubState | undefined)?.connectors) &&
+          (persisted as HubState).connectors.length > 0
+            ? (persisted as HubState).connectors
+            : current.connectors,
+      }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.warn("Hub storage reset:", error);
-          localStorage.removeItem("hub-storage");
+          try {
+            useHubStore.persist.clearStorage();
+          } catch {
+            window.localStorage.removeItem("hub-storage");
+          }
         }
       },
     },
   ),
 );
+
+export function resetHubStorage() {
+  try {
+    useHubStore.persist.clearStorage();
+  } catch {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("hub-storage");
+    }
+  }
+  useHubStore.getState().resetHub();
+}

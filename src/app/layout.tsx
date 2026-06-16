@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { GrokBootstrap } from "@/components/ai/GrokBootstrap";
+import { HubStorageBootstrap } from "@/components/layout/HubStorageBootstrap";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import "./globals.css";
