@@ -3,49 +3,37 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
+import { LiveCallStatus } from "@/components/call/LiveCallStatus";
 import { getAvatarById } from "@/lib/avatars";
-import { applyChatResult } from "@/lib/chat-side-effects";
 import { captureVideoFrame } from "@/lib/capture-video-frame";
+import { useLiveConversation } from "@/hooks/useLiveConversation";
 import { useHubStore } from "@/lib/store";
-import { useToastStore } from "@/lib/toast-store";
-import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
+import { stopSpeaking } from "@/lib/voice";
 import type { AvatarEmotion } from "@/types";
 
 export function VideoCallView() {
-  const {
-    selectedAvatarId,
-    agentName,
-    setEmotion,
-    addMessage,
-    messages,
-    goals,
-    skills,
-    memories,
-    proactivity,
-    autonomy,
-    apiKeys,
-    addActivity,
-    addMemory,
-    addPendingApproval,
-  } = useHubStore();
-  const pushToast = useToastStore((s) => s.push);
+  const { selectedAvatarId, agentName, setEmotion } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
 
   const [muted, setMuted] = useState(false);
   const [videoOn, setVideoOn] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [lipLevel, setLipLevel] = useState(0);
-  const [emotion, setLocalEmotion] = useState<AvatarEmotion>("happy");
-  const [status, setStatus] = useState("Starting camera...");
+  const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState(false);
+  const [emotion, setLocalEmotion] = useState<AvatarEmotion>("happy");
 
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const screenRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const videoOnRef = useRef(videoOn);
+
+  videoOnRef.current = videoOn;
+
+  const getUserImage = useCallback(() => {
+    if (!videoOnRef.current || !userVideoRef.current) return undefined;
+    return captureVideoFrame(userVideoRef.current) ?? undefined;
+  }, []);
 
   const attachUserStream = useCallback((stream: MediaStream) => {
     const video = userVideoRef.current;
@@ -57,33 +45,65 @@ export function VideoCallView() {
   const startCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
         audio: true,
       });
       streamRef.current = stream;
       attachUserStream(stream);
       setCameraError(false);
-      setStatus("Tap Talk to speak");
+      setCameraReady(true);
     } catch {
       setCameraError(true);
-      setStatus("Camera off, avatar only");
+      setCameraReady(true);
     }
   }, [attachUserStream]);
 
   useEffect(() => {
-    onLipSync(setLipLevel);
     void startCamera();
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       screenStreamRef.current?.getTracks().forEach((t) => t.stop());
-      stopSpeaking();
-      recognitionRef.current?.abort();
     };
   }, [startCamera]);
 
   useEffect(() => {
     if (streamRef.current) attachUserStream(streamRef.current);
   }, [attachUserStream, videoOn, cameraError]);
+
+  const {
+    phase,
+    speaking,
+    listening,
+    lipLevel,
+    duration,
+    interimTranscript,
+    endConversation,
+  } = useLiveConversation({
+    avatar,
+    channel: "video",
+    enabled: cameraReady && !!avatar,
+    muted,
+    getUserImage,
+  });
+
+  useEffect(() => {
+    if (speaking) {
+      setLocalEmotion("happy");
+      setEmotion("happy");
+      return;
+    }
+    if (listening || phase === "thinking") {
+      setLocalEmotion("thinking");
+      setEmotion("thinking");
+      return;
+    }
+    setLocalEmotion("happy");
+    setEmotion("happy");
+  }, [speaking, listening, phase, setEmotion]);
 
   const toggleVideo = () => {
     const next = !videoOn;
@@ -93,124 +113,20 @@ export function VideoCallView() {
     });
   };
 
-  const handleAgentReply = useCallback(
-    async (userText: string) => {
-      if (!avatar) return;
-      setStatus("Thinking...");
-      setLocalEmotion("thinking");
-      setEmotion("thinking");
-      addMessage("user", userText, "video");
-
-      const videoHistory = messages
-        .filter((m) => m.channel === "video" || m.channel === "chat")
-        .slice(-6);
-
-      let userImage: string | undefined;
-      if (videoOn && userVideoRef.current) {
-        userImage = captureVideoFrame(userVideoRef.current) ?? undefined;
-      }
-
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: userText,
-            personality: avatar.personality,
-            agentName: agentName || avatar.name,
-            history: [...videoHistory, { role: "user", content: userText }],
-            goals,
-            skills,
-            memories,
-            proactivity,
-            autonomy,
-            tavilyKey: apiKeys.web_search,
-            userImage,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.reply) throw new Error("chat failed");
-        const reply = data.reply;
-        addMessage("assistant", reply, "video");
-        const em = (data.emotion as AvatarEmotion) || "happy";
-        setLocalEmotion(em);
-        setEmotion(em);
-        applyChatResult(data, {
-          addActivity,
-          addMemory,
-          addPendingApproval,
-          onExecuted: (msg) => pushToast(msg, "success"),
-        });
-        setSpeaking(true);
-        setStatus("Speaking...");
-        await speakWithGrok(reply, avatar.voiceId);
-        setSpeaking(false);
-        setLipLevel(0);
-        setStatus("Tap Talk to continue");
-        setLocalEmotion("happy");
-        setEmotion("happy");
-      } catch {
-        setStatus("Error, try again");
-      }
-    },
-    [
-      avatar,
-      agentName,
-      messages,
-      goals,
-      skills,
-      memories,
-      proactivity,
-      autonomy,
-      apiKeys,
-      addMessage,
-      setEmotion,
-      addActivity,
-      addMemory,
-      addPendingApproval,
-      pushToast,
-      videoOn,
-    ],
-  );
-
-  const startListening = useCallback(() => {
-    if (speaking || muted) return;
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setStatus("Use Chrome for voice.");
-      return;
-    }
-    stopSpeaking();
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognitionRef.current = recognition;
-    recognition.onstart = () => {
-      setListening(true);
-      setStatus("Listening...");
-    };
-    recognition.onresult = (e) => {
-      setListening(false);
-      handleAgentReply(e.results[0][0].transcript);
-    };
-    recognition.onerror = () => {
-      setListening(false);
-      setStatus("Try again");
-    };
-    recognition.onend = () => setListening(false);
-    recognition.start();
-  }, [speaking, muted, handleAgentReply]);
-
   const toggleScreenShare = async () => {
     if (screenSharing) {
       screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current = null;
       setScreenSharing(false);
       return;
     }
     try {
       const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
       screenStreamRef.current = s;
-      if (screenRef.current) screenRef.current.srcObject = s;
+      if (screenRef.current) {
+        screenRef.current.srcObject = s;
+        void screenRef.current.play().catch(() => undefined);
+      }
       setScreenSharing(true);
       s.getVideoTracks()[0].onended = () => setScreenSharing(false);
     } catch {
@@ -218,7 +134,16 @@ export function VideoCallView() {
     }
   };
 
+  const handleEndCall = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    endConversation();
+  };
+
   if (!avatar) return null;
+
+  const mins = Math.floor(duration / 60).toString().padStart(2, "0");
+  const secs = (duration % 60).toString().padStart(2, "0");
 
   return (
     <div className="relative flex h-screen flex-col bg-zinc-950">
@@ -250,19 +175,20 @@ export function VideoCallView() {
 
       <div className="absolute left-5 top-5 z-10 text-white">
         <p className="font-medium">{agentName || avatar.name}</p>
-        <p className="text-xs text-zinc-400">{status}</p>
+        <p className="text-xs text-zinc-400">
+          Video · {mins}:{secs}
+        </p>
       </div>
 
-      <button
-        type="button"
-        onClick={startListening}
-        disabled={speaking || muted || listening}
-        className="absolute left-1/2 top-16 z-10 -translate-x-1/2 rounded-full bg-white/15 px-4 py-1.5 text-sm text-white backdrop-blur-md hover:bg-white/25 disabled:opacity-50"
-      >
-        {listening ? "Listening..." : "Talk"}
-      </button>
+      <div className="absolute left-1/2 top-16 z-10 -translate-x-1/2">
+        <LiveCallStatus
+          phase={phase}
+          interimTranscript={interimTranscript}
+          variant="dark"
+        />
+      </div>
 
-      <div className="absolute bottom-24 right-4 z-10 h-28 w-20 overflow-hidden rounded-xl border border-white/20 bg-zinc-900 sm:h-32 sm:w-24">
+      <div className="absolute bottom-24 right-4 z-10 h-32 w-24 overflow-hidden rounded-2xl border-2 border-white/20 bg-zinc-900 shadow-lg sm:h-36 sm:w-28">
         {videoOn && !cameraError ? (
           <video
             ref={userVideoRef}
@@ -272,8 +198,8 @@ export function VideoCallView() {
             className="h-full w-full scale-x-[-1] object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-[10px] text-zinc-500">
-            Camera off
+          <div className="flex h-full flex-col items-center justify-center gap-1 px-2 text-center text-[10px] text-zinc-500">
+            <span>{cameraError ? "Camera unavailable" : "Camera off"}</span>
           </div>
         )}
       </div>
@@ -290,10 +216,7 @@ export function VideoCallView() {
         }}
         onToggleVideo={toggleVideo}
         onToggleScreenShare={toggleScreenShare}
-        onEndCall={() => {
-          streamRef.current?.getTracks().forEach((t) => t.stop());
-          stopSpeaking();
-        }}
+        onEndCall={handleEndCall}
       />
     </div>
   );

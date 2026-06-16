@@ -1,151 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { LiveAvatar } from "@/components/avatar/LiveAvatar";
 import { CallControls } from "@/components/call/CallControls";
+import { LiveCallStatus } from "@/components/call/LiveCallStatus";
 import { getAvatarById } from "@/lib/avatars";
-import { applyChatResult } from "@/lib/chat-side-effects";
+import { useLiveConversation } from "@/hooks/useLiveConversation";
 import { useHubStore } from "@/lib/store";
-import { useToastStore } from "@/lib/toast-store";
-import { onLipSync, speakWithGrok, stopSpeaking } from "@/lib/voice";
+import { stopSpeaking } from "@/lib/voice";
+import { useState } from "react";
 
 export function VoiceCallView() {
-  const {
-    selectedAvatarId,
-    agentName,
-    setEmotion,
-    addMessage,
-    messages,
-    goals,
-    skills,
-    memories,
-    proactivity,
-    autonomy,
-    apiKeys,
-    addActivity,
-    addMemory,
-    addPendingApproval,
-  } = useHubStore();
-  const pushToast = useToastStore((s) => s.push);
+  const { selectedAvatarId, agentName } = useHubStore();
   const avatar = getAvatarById(selectedAvatarId);
-
   const [muted, setMuted] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [lipLevel, setLipLevel] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [status, setStatus] = useState("Tap Talk to speak");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  useEffect(() => {
-    setEmotion("happy");
-    onLipSync(setLipLevel);
-    const interval = setInterval(() => setDuration((d) => d + 1), 1000);
-    return () => {
-      clearInterval(interval);
-      stopSpeaking();
-      recognitionRef.current?.abort();
-    };
-  }, [setEmotion]);
-
-  const handleAgentReply = useCallback(
-    async (userText: string) => {
-      if (!avatar) return;
-      setStatus("Thinking...");
-      setEmotion("thinking");
-      addMessage("user", userText, "voice");
-
-      const voiceHistory = messages
-        .filter((m) => m.channel === "voice" || m.channel === "chat")
-        .slice(-6);
-
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: userText,
-            personality: avatar.personality,
-            agentName: agentName || avatar.name,
-            history: [...voiceHistory, { role: "user", content: userText }],
-            goals,
-            skills,
-            memories,
-            proactivity,
-            autonomy,
-            tavilyKey: apiKeys.web_search,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.reply) throw new Error("chat failed");
-        const reply = data.reply;
-        addMessage("assistant", reply, "voice");
-        setEmotion(data.emotion || "happy");
-        applyChatResult(data, {
-          addActivity,
-          addMemory,
-          addPendingApproval,
-          onExecuted: (msg) => pushToast(msg, "success"),
-        });
-        setSpeaking(true);
-        setStatus("Speaking...");
-        await speakWithGrok(reply, avatar.voiceId);
-        setSpeaking(false);
-        setLipLevel(0);
-        setStatus("Tap Talk to speak");
-        setEmotion("happy");
-      } catch {
-        setStatus("Something went wrong, tap Talk to try again");
-        setEmotion("empathetic");
-      }
-    },
-    [
-      avatar,
-      agentName,
-      messages,
-      goals,
-      skills,
-      memories,
-      proactivity,
-      autonomy,
-      apiKeys,
-      addMessage,
-      setEmotion,
-      addActivity,
-      addMemory,
-      addPendingApproval,
-      pushToast,
-    ],
-  );
-
-  const startListening = useCallback(() => {
-    if (muted || speaking || listening) return;
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setStatus("Use Chrome for voice input");
-      return;
-    }
-    stopSpeaking();
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognitionRef.current = recognition;
-    recognition.onstart = () => {
-      setListening(true);
-      setStatus("Listening...");
-    };
-    recognition.onresult = (e) => {
-      setListening(false);
-      handleAgentReply(e.results[0][0].transcript);
-    };
-    recognition.onerror = () => {
-      setListening(false);
-      setStatus("Didn't catch that, tap Talk to try again");
-    };
-    recognition.onend = () => setListening(false);
-    recognition.start();
-  }, [muted, speaking, listening, handleAgentReply]);
+  const {
+    phase,
+    speaking,
+    listening,
+    lipLevel,
+    duration,
+    interimTranscript,
+    endConversation,
+  } = useLiveConversation({
+    avatar,
+    channel: "voice",
+    enabled: !!avatar,
+    muted,
+  });
 
   if (!avatar) return null;
 
@@ -164,22 +46,17 @@ export function VoiceCallView() {
       <LiveAvatar
         avatar={avatar}
         size="hero"
-        emotion={speaking ? "happy" : listening ? "thinking" : "neutral"}
+        emotion={
+          speaking ? "happy" : listening || phase === "thinking" ? "thinking" : "neutral"
+        }
         speaking={speaking}
         listening={listening}
         lipSyncLevel={lipLevel}
       />
 
-      <p className="mt-4 text-sm text-zinc-500">{status}</p>
-
-      <button
-        type="button"
-        onClick={startListening}
-        disabled={speaking || muted || listening}
-        className="mt-3 rounded-full bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
-      >
-        {listening ? "Listening..." : "Talk"}
-      </button>
+      <div className="mt-6">
+        <LiveCallStatus phase={phase} interimTranscript={interimTranscript} />
+      </div>
 
       <CallControls
         variant="voice"
@@ -193,10 +70,7 @@ export function VoiceCallView() {
         }}
         onToggleVideo={() => {}}
         onToggleScreenShare={() => {}}
-        onEndCall={() => {
-          stopSpeaking();
-          recognitionRef.current?.abort();
-        }}
+        onEndCall={endConversation}
       />
     </div>
   );
