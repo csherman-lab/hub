@@ -126,7 +126,7 @@
 
 .orb-eyes i:first-child,
 .orb-eyes i:last-child {
-  transform: none;
+  transform: none !important;
 }
 
 .orb-eyes.alert i:first-child,
@@ -157,7 +157,7 @@
 }
 
 .orb.confused .orb-eyes i {
-  transform: scaleY(0.88);
+  transform: none !important;
 }
 
 .orb.error,

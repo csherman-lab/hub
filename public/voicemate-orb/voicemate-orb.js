@@ -71,24 +71,21 @@
   }
 
   function updateOrbTurn() {
-    const tiltY = state.gx * 15;
-    const tiltX = state.gy * -11;
-    const glintX = state.gx * -12;
-    const glintY = state.gy * -8;
-    const fluidX = state.gx * 10;
-    const fluidY = state.gy * 8;
-    const glintRot = state.gx * -5;
-    const fluidRot = state.gx * 8;
+    /* Keep the orb facing forward so eyes stay vertical — gaze uses eye translate only. */
+    const glintX = state.gx * -8;
+    const glintY = state.gy * -6;
+    const fluidX = state.gx * 6;
+    const fluidY = state.gy * 5;
 
     for (const orb of state.orbs) {
-      orb.style.setProperty("--orb-tilt-x", `${tiltX.toFixed(2)}deg`);
-      orb.style.setProperty("--orb-tilt-y", `${tiltY.toFixed(2)}deg`);
+      orb.style.setProperty("--orb-tilt-x", "0deg");
+      orb.style.setProperty("--orb-tilt-y", "0deg");
       orb.style.setProperty("--orb-glint-x", `${glintX.toFixed(2)}px`);
       orb.style.setProperty("--orb-glint-y", `${glintY.toFixed(2)}px`);
-      orb.style.setProperty("--orb-glint-rot", `${glintRot.toFixed(2)}deg`);
+      orb.style.setProperty("--orb-glint-rot", "0deg");
       orb.style.setProperty("--orb-fluid-x", `${fluidX.toFixed(2)}px`);
       orb.style.setProperty("--orb-fluid-y", `${fluidY.toFixed(2)}px`);
-      orb.style.setProperty("--orb-fluid-rot", `${fluidRot.toFixed(2)}deg`);
+      orb.style.setProperty("--orb-fluid-rot", "0deg");
     }
   }
 
@@ -145,9 +142,7 @@
 
     state.gx += (state.tx - state.gx) * 0.12;
     state.gy += (state.ty - state.gy) * 0.12;
-    const rotTarget = state.expr === "curious" ? 7 : 0;
-    state.rot += (rotTarget - state.rot) * 0.15;
-    const transform = `translate(${(state.gx * 8).toFixed(2)}%, ${(state.gy * 6).toFixed(2)}%) rotate(${state.rot.toFixed(2)}deg)`;
+    const transform = `translate(${(state.gx * 8).toFixed(2)}%, ${(state.gy * 6).toFixed(2)}%)`;
     for (const el of state.eyeEls) el.style.transform = transform;
     updateOrbTurn();
 

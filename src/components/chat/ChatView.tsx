@@ -240,14 +240,11 @@ export function ChatView() {
   return (
     <div className="flex h-[calc(100dvh-env(safe-area-inset-bottom))] flex-col md:h-screen">
       <header className="flex items-center justify-between gap-4 border-b border-zinc-200 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/80">
-        <div className="flex items-center gap-4">
-          <AvatarDisplay avatar={avatar} size="sm" emotion="neutral" />
-          <div>
-            <h1 className="font-semibold">{agentName || avatar.name}</h1>
-            <p className={cn("text-xs", toolStatus ? "text-blue-500" : "text-zinc-500")}>
-              {statusLine}
-            </p>
-          </div>
+        <div>
+          <h1 className="font-semibold">{agentName || avatar.name}</h1>
+          <p className={cn("text-xs", toolStatus ? "text-blue-500" : "text-zinc-500")}>
+            {statusLine}
+          </p>
         </div>
         <div className="flex gap-1">
           <Button
@@ -283,7 +280,7 @@ export function ChatView() {
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
         {chatMessages.length === 0 && !streamingText && !loading && (
           <PopIn className="flex h-full flex-col items-center justify-center text-center">
-            <AvatarDisplay avatar={avatar} size="md" emotion="happy" />
+            <AvatarDisplay avatar={avatar} size="md" emotion="happy" followCursor={false} />
             <p className="mt-4 text-lg font-medium">
               Hey! I&apos;m {agentName || avatar.name}.
             </p>

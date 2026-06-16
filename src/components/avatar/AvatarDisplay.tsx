@@ -11,6 +11,7 @@ interface AvatarDisplayProps {
   speaking?: boolean;
   listening?: boolean;
   lipSyncLevel?: number;
+  followCursor?: boolean;
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export function AvatarDisplay({
   speaking = false,
   listening = false,
   lipSyncLevel = 0,
+  followCursor = false,
   className,
 }: AvatarDisplayProps) {
   return (
@@ -31,7 +33,7 @@ export function AvatarDisplay({
       speaking={speaking}
       listening={listening}
       lipSyncLevel={lipSyncLevel}
-      followCursor={size !== "xs" && size !== "sm"}
+      followCursor={followCursor}
       className={cn(className)}
     />
   );

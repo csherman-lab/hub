@@ -17,10 +17,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getAvatarById } from "@/lib/avatars";
-import { useHubStore } from "@/lib/store";
 import { useSidebarStore } from "@/lib/sidebar-store";
-import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { CommandPaletteTrigger } from "@/components/layout/CommandPalette";
 import { useCommandPaletteStore } from "@/lib/command-palette-store";
 
@@ -83,11 +80,9 @@ function NavLink({
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { selectedAvatarId, currentEmotion } = useHubStore();
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleSidebar = useSidebarStore((s) => s.toggle);
   const togglePalette = useCommandPaletteStore((s) => s.toggle);
-  const avatar = getAvatarById(selectedAvatarId);
   const [sidebarReady, setSidebarReady] = useState(false);
 
   const isCallView = pathname?.includes("/call/");
@@ -155,25 +150,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <CommandPaletteTrigger />
             )}
           </div>
-
-          {avatar && (
-            <Link
-              href="/dashboard"
-              title={avatar.name}
-              className={cn(
-                "mt-3 flex items-center justify-center rounded-2xl bg-zinc-50 transition-colors hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800",
-                isCollapsed ? "p-2" : "p-3",
-              )}
-            >
-              <div className={cn(!isCollapsed && "animate-hub-float")}>
-                <AvatarDisplay
-                  avatar={avatar}
-                  size={isCollapsed ? "sm" : "xs"}
-                  emotion={currentEmotion}
-                />
-              </div>
-            </Link>
-          )}
         </div>
 
         <nav

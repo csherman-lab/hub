@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { ProactiveSuggestions } from "@/components/dashboard/ProactiveSuggestions";
 import { FadeIn, Stagger, StaggerItem, AnimatedCard } from "@/components/motion/HubMotion";
+import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { getAvatarById } from "@/lib/avatars";
 import {
   ACTIVITY_COLORS,
@@ -128,6 +129,7 @@ export function HomeView() {
     activities,
     pendingApprovals,
     connectors,
+    currentEmotion,
     approveItem,
     dismissApproval,
     connectConnector,
@@ -360,6 +362,15 @@ export function HomeView() {
             </button>
           </div>
           <div className="flex flex-1 flex-col p-5">
+            <div className="flex flex-1 gap-4">
+              <div className="shrink-0 self-start">
+                <AvatarDisplay
+                  avatar={avatar}
+                  size="sm"
+                  emotion={briefingLoading ? "thinking" : currentEmotion}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
             {briefingLoading ? (
               <div className="space-y-2">
                 <div className="h-3 w-3/4 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
@@ -367,7 +378,7 @@ export function HomeView() {
                 <div className="h-3 w-5/6 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
               </div>
             ) : (
-              <p className="flex-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                 {briefing ||
                   `${displayName} is ready. Start a chat or connect apps to get a richer briefing.`}
               </p>
@@ -378,6 +389,8 @@ export function HomeView() {
                 {stats.memories} memor{stats.memories === 1 ? "y" : "ies"} stored
               </p>
             )}
+              </div>
+            </div>
           </div>
         </AnimatedCard>
 

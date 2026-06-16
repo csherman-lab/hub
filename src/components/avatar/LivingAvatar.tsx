@@ -103,9 +103,7 @@ export function LivingAvatar({
                     : size
             }
             lipSyncLevel={lipSyncLevel}
-            followCursor={
-              followCursor ?? (size !== "picker" && size !== "xs" && size !== "sm")
-            }
+            followCursor={followCursor ?? false}
             interactive={interactive}
             live={live}
           />

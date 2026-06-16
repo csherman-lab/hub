@@ -16,8 +16,9 @@ export type CallPhase =
   | "muted"
   | "error";
 
-const CONNECT_DELAY_MS = 700;
-const RESTART_DELAY_MS = 250;
+const CONNECT_DELAY_MS = 500;
+const RESTART_DELAY_MS = 300;
+const UTTERANCE_END_MS = 850;
 
 function getSpeechRecognition() {
   if (typeof window === "undefined") return null;
@@ -67,13 +68,17 @@ export function useLiveConversation({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const shouldListenRef = useRef(false);
   const busyRef = useRef(false);
-  const speakingRef = useRef(false);
-  const startedRef = useRef(false);
   const mutedRef = useRef(muted);
+  const startedRef = useRef(false);
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const utteranceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingTranscriptRef = useRef("");
 
   mutedRef.current = muted;
-  speakingRef.current = speaking;
+
+  const setSpeakingState = useCallback((active: boolean) => {
+    setSpeaking(active);
+  }, []);
 
   const clearRestartTimer = useCallback(() => {
     if (restartTimerRef.current) {
@@ -82,8 +87,17 @@ export function useLiveConversation({
     }
   }, []);
 
+  const clearUtteranceTimer = useCallback(() => {
+    if (utteranceTimerRef.current) {
+      clearTimeout(utteranceTimerRef.current);
+      utteranceTimerRef.current = null;
+    }
+  }, []);
+
   const stopRecognition = useCallback(() => {
     clearRestartTimer();
+    clearUtteranceTimer();
+    pendingTranscriptRef.current = "";
     try {
       recognitionRef.current?.abort();
     } catch {
@@ -92,22 +106,22 @@ export function useLiveConversation({
     recognitionRef.current = null;
     setListening(false);
     setInterimTranscript("");
-  }, [clearRestartTimer]);
+  }, [clearRestartTimer, clearUtteranceTimer]);
 
   const handleAgentReply = useCallback(
     async (userText: string) => {
-      if (!avatar || busyRef.current) return;
+      if (!avatar || busyRef.current || !userText.trim()) return;
       busyRef.current = true;
       shouldListenRef.current = false;
       stopRecognition();
       setPhase("thinking");
       setEmotion("thinking");
-      addMessage("user", userText, channel);
+      addMessage("user", userText.trim(), channel);
 
       const history = useHubStore
         .getState()
         .messages.filter((m) => m.channel === channel || m.channel === "chat")
-        .slice(-8)
+        .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
       const userImage = getUserImage?.();
@@ -117,7 +131,7 @@ export function useLiveConversation({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: userText,
+            message: userText.trim(),
             personality: avatar.personality,
             agentName: agentName || avatar.name,
             history,
@@ -144,35 +158,22 @@ export function useLiveConversation({
         });
 
         setPhase("speaking");
-        setSpeaking(true);
+        setSpeakingState(true);
         await speakWithGrok(reply, avatar.voiceId);
-        setSpeaking(false);
+        setSpeakingState(false);
         setLipLevel(0);
         setEmotion("happy");
-
-        if (!mutedRef.current) {
-          setPhase("listening");
-          shouldListenRef.current = true;
-          restartTimerRef.current = setTimeout(() => {
-            restartTimerRef.current = null;
-            startRecognitionRef.current?.();
-          }, RESTART_DELAY_MS);
-        } else {
-          setPhase("muted");
-        }
       } catch {
         setEmotion("empathetic");
         setPhase(mutedRef.current ? "muted" : "error");
         pushToast("Could not reach your agent. Try again.", "error");
-        if (!mutedRef.current) {
-          shouldListenRef.current = true;
-          restartTimerRef.current = setTimeout(() => {
-            restartTimerRef.current = null;
-            startRecognitionRef.current?.();
-          }, RESTART_DELAY_MS);
-        }
       } finally {
         busyRef.current = false;
+        if (!mutedRef.current) {
+          resumeListeningRef.current?.();
+        } else {
+          setPhase("muted");
+        }
       }
     },
     [
@@ -193,24 +194,39 @@ export function useLiveConversation({
       pushToast,
       getUserImage,
       stopRecognition,
+      setSpeakingState,
     ],
   );
+
+  const handleAgentReplyRef = useRef(handleAgentReply);
+  handleAgentReplyRef.current = handleAgentReply;
+
+  const resumeListeningRef = useRef<(() => void) | null>(null);
+
+  const resumeListening = useCallback(() => {
+    if (mutedRef.current || busyRef.current) return;
+    shouldListenRef.current = true;
+    setPhase("listening");
+    clearRestartTimer();
+    restartTimerRef.current = setTimeout(() => {
+      restartTimerRef.current = null;
+      startRecognitionRef.current?.();
+    }, RESTART_DELAY_MS);
+  }, [clearRestartTimer]);
+
+  resumeListeningRef.current = resumeListening;
 
   const startRecognitionRef = useRef<(() => void) | null>(null);
 
   const startRecognition = useCallback(() => {
-    if (
-      !shouldListenRef.current ||
-      mutedRef.current ||
-      busyRef.current ||
-      speakingRef.current
-    ) {
+    if (!shouldListenRef.current || mutedRef.current || busyRef.current) {
       return;
     }
 
     const SpeechRecognitionCtor = getSpeechRecognition();
     if (!SpeechRecognitionCtor) {
       setPhase("error");
+      pushToast("Voice input needs Chrome or Edge.", "error");
       return;
     }
 
@@ -218,81 +234,88 @@ export function useLiveConversation({
 
     const recognition = new SpeechRecognitionCtor();
     recognition.lang = "en-US";
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognitionRef.current = recognition;
+    pendingTranscriptRef.current = "";
+
+    const flushUtterance = () => {
+      clearUtteranceTimer();
+      const text = pendingTranscriptRef.current.trim();
+      pendingTranscriptRef.current = "";
+      setInterimTranscript("");
+      if (!text || busyRef.current) return;
+      shouldListenRef.current = false;
+      try {
+        recognition.stop();
+      } catch {
+        /* ignore */
+      }
+      void handleAgentReplyRef.current(text);
+    };
+
+    const scheduleUtteranceEnd = () => {
+      clearUtteranceTimer();
+      utteranceTimerRef.current = setTimeout(flushUtterance, UTTERANCE_END_MS);
+    };
 
     recognition.onstart = () => {
       setListening(true);
       setPhase("listening");
-      setInterimTranscript("");
     };
 
     recognition.onresult = (event) => {
       let interim = "";
-      let finalText = "";
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const transcript = result[0]?.transcript ?? "";
-        if (result.isFinal) finalText += transcript;
-        else interim += transcript;
+        if (result.isFinal) {
+          pendingTranscriptRef.current += `${transcript} `;
+        } else {
+          interim += transcript;
+        }
       }
 
-      if (interim) setInterimTranscript(interim);
+      const preview = `${pendingTranscriptRef.current}${interim}`.trim();
+      setInterimTranscript(preview);
 
-      const text = finalText.trim();
-      if (text.length >= 1) {
-        shouldListenRef.current = false;
-        setInterimTranscript("");
-        void handleAgentReply(text);
+      if (pendingTranscriptRef.current.trim()) {
+        scheduleUtteranceEnd();
       }
     };
 
     recognition.onerror = (event) => {
       if (event.error === "aborted") return;
-      if (event.error === "no-speech") {
-        if (shouldListenRef.current && !busyRef.current && !mutedRef.current) {
-          restartTimerRef.current = setTimeout(() => {
-            restartTimerRef.current = null;
-            startRecognitionRef.current?.();
-          }, RESTART_DELAY_MS);
-        }
-        return;
-      }
       if (event.error === "not-allowed") {
         setPhase("error");
         shouldListenRef.current = false;
+        pushToast("Allow microphone access to use voice.", "error");
         return;
       }
-      if (shouldListenRef.current && !busyRef.current && !mutedRef.current) {
-        restartTimerRef.current = setTimeout(() => {
-          restartTimerRef.current = null;
-          startRecognitionRef.current?.();
-        }, RESTART_DELAY_MS);
+      if (
+        shouldListenRef.current &&
+        !busyRef.current &&
+        !mutedRef.current &&
+        event.error !== "no-speech"
+      ) {
+        resumeListeningRef.current?.();
       }
     };
 
     recognition.onend = () => {
       setListening(false);
-      setInterimTranscript("");
+      clearUtteranceTimer();
       if (shouldListenRef.current && !busyRef.current && !mutedRef.current) {
-        restartTimerRef.current = setTimeout(() => {
-          restartTimerRef.current = null;
-          startRecognitionRef.current?.();
-        }, RESTART_DELAY_MS);
+        resumeListeningRef.current?.();
       }
     };
 
     try {
       recognition.start();
     } catch {
-      restartTimerRef.current = setTimeout(() => {
-        restartTimerRef.current = null;
-        startRecognitionRef.current?.();
-      }, RESTART_DELAY_MS);
+      resumeListeningRef.current?.();
     }
-  }, [handleAgentReply, stopRecognition]);
+  }, [stopRecognition, pushToast, clearUtteranceTimer]);
 
   startRecognitionRef.current = startRecognition;
 
@@ -300,21 +323,21 @@ export function useLiveConversation({
     if (!avatar) return;
     const greeting = getCallGreeting(agentName || avatar.name);
     setPhase("speaking");
-    setSpeaking(true);
+    setSpeakingState(true);
     setEmotion("happy");
-    addMessage("assistant", greeting, channel);
     await speakWithGrok(greeting, avatar.voiceId);
-    setSpeaking(false);
+    setSpeakingState(false);
     setLipLevel(0);
-  }, [avatar, agentName, channel, addMessage, setEmotion]);
+  }, [avatar, agentName, setEmotion, setSpeakingState]);
 
   const endConversation = useCallback(() => {
     shouldListenRef.current = false;
     busyRef.current = false;
     clearRestartTimer();
+    clearUtteranceTimer();
     stopRecognition();
     stopSpeaking();
-  }, [clearRestartTimer, stopRecognition]);
+  }, [clearRestartTimer, clearUtteranceTimer, stopRecognition]);
 
   useEffect(() => {
     onLipSync(setLipLevel);
@@ -340,14 +363,7 @@ export function useLiveConversation({
       }
 
       await speakGreeting();
-
-      if (mutedRef.current) {
-        setPhase("muted");
-        return;
-      }
-
-      shouldListenRef.current = true;
-      startRecognitionRef.current?.();
+      resumeListeningRef.current?.();
     })();
   }, [enabled, avatar, speakGreeting, setEmotion]);
 
@@ -357,23 +373,17 @@ export function useLiveConversation({
     if (muted) {
       shouldListenRef.current = false;
       stopRecognition();
-      if (!busyRef.current && !speakingRef.current) {
+      stopSpeaking();
+      if (!busyRef.current) {
         setPhase("muted");
       }
-      stopSpeaking();
       return;
     }
 
-    if (
-      phase === "muted" &&
-      !busyRef.current &&
-      !speakingRef.current
-    ) {
-      shouldListenRef.current = true;
-      setPhase("listening");
-      startRecognitionRef.current?.();
+    if (phase === "muted" && !busyRef.current && !speaking) {
+      resumeListeningRef.current?.();
     }
-  }, [muted, phase, stopRecognition]);
+  }, [muted, phase, speaking, stopRecognition]);
 
   return {
     phase,
