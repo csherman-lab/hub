@@ -124,21 +124,14 @@
   transition: transform 110ms ease;
 }
 
-/* Playful crooked eyes — each eye tilts slightly */
-.orb-eyes i:first-child {
-  transform: rotate(-8deg) translateY(1px);
-}
-
+.orb-eyes i:first-child,
 .orb-eyes i:last-child {
-  transform: rotate(8deg) translateY(-1px);
+  transform: none;
 }
 
-.orb-eyes.alert i:first-child {
-  transform: rotate(-8deg) scaleY(1.18) translateY(1px);
-}
-
+.orb-eyes.alert i:first-child,
 .orb-eyes.alert i:last-child {
-  transform: rotate(8deg) scaleY(1.18) translateY(-1px);
+  transform: scaleY(1.18);
 }
 
 .orb-eyes.blinking i:first-child,
@@ -146,12 +139,9 @@
   transform: scaleY(0.08);
 }
 
-.orb-eyes.squinting i:first-child {
-  transform: rotate(-8deg) scale(1.12, 0.38);
-}
-
+.orb-eyes.squinting i:first-child,
 .orb-eyes.squinting i:last-child {
-  transform: rotate(8deg) scale(1.12, 0.38);
+  transform: scale(1.12, 0.38);
 }
 
 .orb.listening {
@@ -167,7 +157,7 @@
 }
 
 .orb.confused .orb-eyes i {
-  transform: scaleY(0.88) rotate(-4deg);
+  transform: scaleY(0.88);
 }
 
 .orb.error,
