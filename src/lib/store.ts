@@ -176,6 +176,9 @@ function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
     "voice-mate": "voicemate",
     luna: "pulse",
     alex: "ember",
+    aria: "prism",
+    jules: "muse",
+    marco: "sage",
   };
   if (migrated.selectedAvatarId) {
     migrated.selectedAvatarId =

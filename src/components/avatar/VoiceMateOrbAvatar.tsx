@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import "@/styles/voicemate-orb.css";
 
 interface VoiceMateOrbAvatarProps {
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "hero";
+  size?: "picker" | "xs" | "sm" | "md" | "lg" | "xl" | "hero";
   variant?: OrbVariant;
   emotion?: AvatarEmotion;
   speaking?: boolean;
@@ -22,6 +22,7 @@ interface VoiceMateOrbAvatarProps {
 }
 
 const SIZE_CLASS = {
+  picker: "orb--picker",
   xs: "orb--xs",
   sm: "orb--xs",
   md: "orb--md",
@@ -47,7 +48,7 @@ export function VoiceMateOrbAvatar({
   const orbRef = useRef<HTMLDivElement>(null);
   const reactId = useId().replace(/:/g, "");
   const orbId = `voicemate-orb-${reactId}`;
-  const shouldAnimate = size !== "xs" && size !== "sm";
+  const shouldAnimate = !["picker", "xs", "sm"].includes(size);
 
   useEffect(() => {
     const orb = orbRef.current;
@@ -132,7 +133,7 @@ export function VoiceMateOrbAvatar({
     <div
       className={cn(
         "flex items-center justify-center",
-        size === "xs" || size === "sm" ? "h-16 w-16" : "w-full",
+        size === "picker" ? "h-[72px] w-[72px]" : size === "xs" || size === "sm" ? "h-16 w-16" : "w-full",
         className,
       )}
     >

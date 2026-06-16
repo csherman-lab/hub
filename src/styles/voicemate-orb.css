@@ -177,6 +177,31 @@
 }
 
 /* Size presets */
+.orb--picker {
+  width: 72px;
+  height: 72px;
+}
+
+.orb--picker .orb-eyes i {
+  animation: orbPickerBlink 4.8s ease-in-out infinite;
+}
+
+.orb--picker .orb-eyes i:last-child {
+  animation-delay: 0.05s;
+}
+
+@keyframes orbPickerBlink {
+  0%,
+  46%,
+  54%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.1);
+  }
+}
+
 .orb--xs {
   width: 64px;
   height: 64px;

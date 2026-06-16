@@ -1,0 +1,170 @@
+/* Glyphs — faceted crystal companions */
+
+.glyph {
+  --glyph-size: 200px;
+  position: relative;
+  width: var(--glyph-size);
+  height: var(--glyph-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.glyph-core {
+  position: relative;
+  width: 68%;
+  height: 68%;
+  transform: rotate(45deg);
+  border-radius: 16%;
+  overflow: hidden;
+  transition: transform 180ms ease;
+  animation: glyphFloat 4.2s ease-in-out infinite;
+  box-shadow:
+    inset 0 2px 8px rgba(255, 255, 255, 0.55),
+    inset -8px -8px 20px rgba(0, 0, 0, 0.18),
+    0 12px 32px rgba(60, 100, 200, 0.22);
+}
+
+.glyph-core::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 30deg,
+    rgba(255, 255, 255, 0.5),
+    transparent 25%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 75%,
+    rgba(255, 255, 255, 0.45)
+  );
+  animation: glyphShimmer 5s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.glyph-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-45deg);
+}
+
+.glyph-eyes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14%;
+}
+
+.glyph-eyes i {
+  width: 10px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #e8eeff);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 110ms ease;
+}
+
+.glyph-eyes.blinking i {
+  transform: scaleY(0.1);
+}
+
+.glyph.listening .glyph-core {
+  animation: glyphFloat 4.2s ease-in-out infinite, glyphBreathe 1.6s ease-in-out infinite;
+}
+
+.glyph.speaking .glyph-core {
+  animation: glyphFloat 4.2s ease-in-out infinite, glyphSpeak 0.75s ease-in-out infinite;
+}
+
+.glyph.thinking .glyph-core {
+  filter: saturate(0.92);
+}
+
+/* Variants */
+.glyph--sapphire .glyph-core {
+  background:
+    linear-gradient(145deg, #7ec8ff 0%, #2b7fff 45%, #0a2a6e 100%);
+}
+
+.glyph--citrine .glyph-core {
+  background:
+    linear-gradient(145deg, #fff0a8 0%, #ffb347 42%, #c45c00 100%);
+}
+
+.glyph--onyx .glyph-core {
+  background:
+    linear-gradient(145deg, #c8b8ff 0%, #6b4ce6 40%, #1a0f3d 100%);
+}
+
+/* Sizes */
+.glyph--picker {
+  --glyph-size: 72px;
+}
+
+.glyph--picker .glyph-eyes i {
+  width: 5px;
+  height: 9px;
+}
+
+.glyph--xs {
+  --glyph-size: 64px;
+}
+
+.glyph--md {
+  --glyph-size: 160px;
+}
+
+.glyph--hero {
+  --glyph-size: min(280px, 52vw);
+}
+
+.glyph--lg {
+  --glyph-size: 320px;
+}
+
+@keyframes glyphFloat {
+  0%,
+  100% {
+    transform: rotate(45deg) translateY(0);
+  }
+  50% {
+    transform: rotate(45deg) translateY(-4px);
+  }
+}
+
+@keyframes glyphShimmer {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glyphBreathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.04;
+  }
+}
+
+@keyframes glyphSpeak {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.07;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph-core,
+  .glyph-core::before {
+    animation: none !important;
+  }
+}

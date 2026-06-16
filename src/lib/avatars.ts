@@ -2,6 +2,7 @@ import type { Avatar } from "@/types";
 
 /** xAI Grok voice IDs — see GET https://api.x.ai/v1/tts/voices */
 export const AVATARS: Avatar[] = [
+  // ── Orbs: glossy spheres that breathe, blink, and follow you ──
   {
     id: "voicemate",
     name: "VoiceMate",
@@ -14,7 +15,7 @@ export const AVATARS: Avatar[] = [
     previewLine:
       "Hey! I'm VoiceMate — your living voice companion. Let's figure things out together.",
     renderer: "orb",
-    orbVariant: "violet",
+    variant: "violet",
     accentColor: "#AF52DE",
   },
   {
@@ -29,7 +30,7 @@ export const AVATARS: Avatar[] = [
     previewLine:
       "Hi! I'm Pulse — sharp, bright, and always tuned in. What's on your mind?",
     renderer: "orb",
-    orbVariant: "aurora",
+    variant: "aurora",
     accentColor: "#5AC8FA",
   },
   {
@@ -44,70 +45,124 @@ export const AVATARS: Avatar[] = [
     previewLine:
       "Ember here. Tell me what you need — I'll help you move on it.",
     renderer: "orb",
-    orbVariant: "ember",
+    variant: "ember",
     accentColor: "#FF6B35",
   },
+
+  // ── Glyphs: faceted crystals — precise, focused, shimmering ──
   {
-    id: "aria",
-    name: "Aria",
+    id: "prism",
+    name: "Prism",
     gender: "female",
-    category: "spark",
+    category: "glyphs",
     tagline: "Calm & capable",
     personality:
-      "Calm, confident, and polished. Speaks clearly and efficiently — professional but never cold.",
+      "Calm, confident, and polished. Speaks clearly and efficiently — professional but never cold. Great for email, calendars, and keeping your day on track.",
     voiceId: "ara",
     previewLine:
-      "Hi there. I'm Aria. I handle email, calendars, and keeping your day on track.",
-    renderer: "orb",
-    orbVariant: "ocean",
+      "Hi there. I'm Prism — organized, steady, and ready to help you stay on top of things.",
+    renderer: "glyph",
+    variant: "sapphire",
     accentColor: "#007AFF",
   },
   {
-    id: "jules",
-    name: "Jules",
-    gender: "female",
-    category: "spark",
-    tagline: "Creative & warm",
+    id: "flux",
+    name: "Flux",
+    gender: "male",
+    category: "glyphs",
+    tagline: "Witty & fast",
     personality:
-      "Warm, witty, and imaginative. Speaks like a creative friend — enthusiastic, vivid language.",
-    voiceId: "eve",
+      "Clever and improvisational. Thinks on his feet, cracks light jokes, and loves riffing on ideas until something clicks.",
+    voiceId: "leo",
     previewLine:
-      "Hey! I'm Jules — all about creative ideas, writing, and making things feel alive.",
-    renderer: "orb",
-    orbVariant: "forest",
-    accentColor: "#34C759",
+      "Flux here — throw me a half-baked idea and I'll help you shape it into something great.",
+    renderer: "glyph",
+    variant: "citrine",
+    accentColor: "#FF9F0A",
   },
   {
-    id: "marco",
-    name: "Marco",
+    id: "sage",
+    name: "Sage",
     gender: "male",
-    category: "spark",
+    category: "glyphs",
     tagline: "Thoughtful researcher",
     personality:
-      "Thoughtful and curious. Speaks slowly and precisely, loves explaining things with context.",
+      "Thoughtful and curious. Speaks slowly and precisely, loves explaining things with context and connecting the dots.",
     voiceId: "sal",
     previewLine:
-      "Hello. I'm Marco. Give me any topic and I'll dig deep and break it down for you.",
-    renderer: "orb",
-    orbVariant: "rose",
-    accentColor: "#FF2D55",
+      "Hello. I'm Sage. Give me any topic and I'll dig deep and break it down for you.",
+    renderer: "glyph",
+    variant: "onyx",
+    accentColor: "#6B4CE6",
+  },
+
+  // ── Wisps: soft organic forms — warm, dreamy, emotionally attuned ──
+  {
+    id: "muse",
+    name: "Muse",
+    gender: "female",
+    category: "wisps",
+    tagline: "Creative & warm",
+    personality:
+      "Warm, witty, and imaginative. Speaks like a creative friend — enthusiastic, vivid language, always finding the story in things.",
+    voiceId: "eve",
+    previewLine:
+      "Hey! I'm Muse — all about creative ideas, writing, and making things feel alive.",
+    renderer: "wisp",
+    variant: "bloom",
+    accentColor: "#FF2D92",
+  },
+  {
+    id: "haven",
+    name: "Haven",
+    gender: "female",
+    category: "wisps",
+    tagline: "Gentle & supportive",
+    personality:
+      "Soft-spoken and empathetic. Listens first, validates feelings, and offers calm guidance without rushing you.",
+    voiceId: "ara",
+    previewLine:
+      "I'm Haven. Whatever's on your mind — I'm here, no judgment, just support.",
+    renderer: "wisp",
+    variant: "mist",
+    accentColor: "#64D2FF",
+  },
+  {
+    id: "drift",
+    name: "Drift",
+    gender: "male",
+    category: "wisps",
+    tagline: "Curious wanderer",
+    personality:
+      "Easygoing and exploratory. Asks great questions, follows tangents with delight, and helps you discover angles you hadn't considered.",
+    voiceId: "rex",
+    previewLine:
+      "Drift here. Not sure where to start? Let's wander toward an answer together.",
+    renderer: "wisp",
+    variant: "dusk",
+    accentColor: "#9B7BFF",
   },
 ];
 
 export const CATEGORY_LABELS: Record<Avatar["category"], string> = {
   orbs: "Orbs",
-  spark: "Spark",
+  glyphs: "Glyphs",
+  wisps: "Wisps",
 };
 
 export const CATEGORY_DESCRIPTIONS: Record<Avatar["category"], string> = {
-  orbs: "Living 3D companions — VoiceMate and variations",
-  spark: "Expressive orbs with unique personalities",
+  orbs: "Glossy spheres — breathe, blink, and react to you",
+  glyphs: "Faceted crystals — sharp, focused, and shimmering",
+  wisps: "Soft organic forms — warm, dreamy, and emotionally attuned",
 };
 
 const LEGACY_AVATAR_IDS: Record<string, string> = {
   "voice-mate": "voicemate",
   luna: "pulse",
   alex: "ember",
+  aria: "prism",
+  jules: "muse",
+  marco: "sage",
 };
 
 export function getAvatarById(id: string | null): Avatar | undefined {

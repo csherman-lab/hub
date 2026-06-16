@@ -90,7 +90,7 @@ test.describe("Hub full flow", () => {
     await page.goto("/onboarding");
     await expect(page.getByText("Grok connected")).toBeVisible({ timeout: 15_000 });
     await page.getByRole("button", { name: /Continue/i }).click();
-    await page.getByRole("button", { name: /Aria/i }).click();
+    await page.getByRole("button", { name: /Prism/i }).click();
     await page.getByRole("button", { name: /Continue/i }).click();
     await page.getByRole("button", { name: /^Text$/i }).click();
     await expect(page).toHaveURL(/\/dashboard\/chat/, { timeout: 10_000 });
@@ -159,8 +159,8 @@ test.describe("Hub full flow", () => {
           onboardingComplete: true,
           onboardingStep: 2,
           goals: [],
-          selectedAvatarId: "aria",
-          agentName: "Aria",
+          selectedAvatarId: "prism",
+          agentName: "Prism",
           proactivity: "balanced",
           autonomy: "balanced",
           theme: "light",

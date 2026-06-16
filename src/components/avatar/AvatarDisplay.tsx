@@ -1,6 +1,6 @@
 "use client";
 
-import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
+import { LivingAvatar } from "@/components/avatar/LivingAvatar";
 import type { Avatar, AvatarEmotion } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,8 @@ export function AvatarDisplay({
   className,
 }: AvatarDisplayProps) {
   return (
-    <VoiceMateOrbAvatar
-      variant={avatar.orbVariant}
+    <LivingAvatar
+      avatar={avatar}
       size={size}
       emotion={emotion}
       speaking={speaking}

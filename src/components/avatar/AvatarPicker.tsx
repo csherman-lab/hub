@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, Volume2 } from "lucide-react";
 import {
   AVATARS,
@@ -8,12 +8,12 @@ import {
   CATEGORY_LABELS,
   getAvatarsByCategory,
 } from "@/lib/avatars";
-import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
+import { LivingAvatar } from "@/components/avatar/LivingAvatar";
 import { previewAvatarVoice, stopSpeaking } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import type { Avatar, AvatarCategory } from "@/types";
 
-const CATEGORIES: AvatarCategory[] = ["orbs", "spark"];
+const CATEGORIES: AvatarCategory[] = ["orbs", "glyphs", "wisps"];
 
 interface AvatarPickerProps {
   selectedId: string | null;
@@ -26,10 +26,19 @@ export function AvatarPicker({
   onSelect,
   showAll = false,
 }: AvatarPickerProps) {
-  const [activeCategory, setActiveCategory] = useState<AvatarCategory>("orbs");
+  const selectedAvatar = AVATARS.find((a) => a.id === selectedId);
+  const [activeCategory, setActiveCategory] = useState<AvatarCategory>(
+    selectedAvatar?.category ?? "orbs",
+  );
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const list = showAll ? AVATARS : getAvatarsByCategory(activeCategory);
   const selected = AVATARS.find((a) => a.id === selectedId);
+
+  useEffect(() => {
+    if (selectedAvatar?.category) {
+      setActiveCategory(selectedAvatar.category);
+    }
+  }, [selectedAvatar?.category]);
 
   const speakAvatar = useCallback(async (avatar: Avatar) => {
     stopSpeaking();
@@ -49,7 +58,7 @@ export function AvatarPicker({
     <div className="space-y-5">
       {!showAll && (
         <div className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -75,7 +84,7 @@ export function AvatarPicker({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-3">
         {list.map((avatar) => {
           const isSelected = selectedId === avatar.id;
           return (
@@ -84,30 +93,32 @@ export function AvatarPicker({
               type="button"
               onClick={() => handleSelect(avatar)}
               className={cn(
-                "relative flex flex-col items-center rounded-2xl border-2 p-4 text-center transition-all",
+                "relative flex min-h-[148px] flex-col items-center rounded-2xl border-2 px-2 pb-3 pt-2 text-center transition-all",
                 isSelected
                   ? "border-blue-500 bg-blue-50/80 shadow-md ring-2 ring-blue-500/20 dark:bg-blue-950/30"
                   : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
               )}
             >
               {isSelected && (
-                <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white">
+                <span className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white">
                   <Check className="h-3.5 w-3.5" />
                 </span>
               )}
-              <div className="h-24 w-24">
-                <VoiceMateOrbAvatar
-                  variant={avatar.orbVariant}
-                  size="md"
+              <div className="w-full shrink-0 overflow-hidden">
+                <LivingAvatar
+                  avatar={avatar}
+                  size="picker"
                   speaking={previewingId === avatar.id}
-                  followCursor={false}
                   interactive={false}
-                  ariaLabel={avatar.name}
-                  className="h-full w-full"
+                  followCursor={false}
                 />
               </div>
-              <p className="mt-2 font-semibold">{avatar.name}</p>
-              <p className="mt-0.5 text-xs text-zinc-500">{avatar.tagline}</p>
+              <p className="mt-1 line-clamp-1 w-full text-sm font-semibold">
+                {avatar.name}
+              </p>
+              <p className="line-clamp-2 w-full text-[11px] leading-tight text-zinc-500">
+                {avatar.tagline}
+              </p>
             </button>
           );
         })}

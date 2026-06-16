@@ -1,12 +1,9 @@
-export type AvatarCategory = "orbs" | "spark";
+export type AvatarCategory = "orbs" | "glyphs" | "wisps";
 
-export type OrbVariant =
-  | "violet"
-  | "aurora"
-  | "ember"
-  | "ocean"
-  | "forest"
-  | "rose";
+export type OrbVariant = "violet" | "aurora" | "ember";
+export type GlyphVariant = "sapphire" | "citrine" | "onyx";
+export type WispVariant = "mist" | "bloom" | "dusk";
+export type AvatarVariant = OrbVariant | GlyphVariant | WispVariant;
 
 export type AvatarEmotion =
   | "neutral"
@@ -35,7 +32,7 @@ export type ConnectorStatus = "connected" | "disconnected" | "error";
 
 export type AvatarGender = "female" | "male";
 
-export type AvatarRenderer = "orb";
+export type AvatarRenderer = "orb" | "glyph" | "wisp";
 
 export interface Avatar {
   id: string;
@@ -46,8 +43,8 @@ export interface Avatar {
   personality: string;
   voiceId: string;
   previewLine: string;
-  renderer: "orb";
-  orbVariant: OrbVariant;
+  renderer: AvatarRenderer;
+  variant: AvatarVariant;
   accentColor: string;
 }
 
