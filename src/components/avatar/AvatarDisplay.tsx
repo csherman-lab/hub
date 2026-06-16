@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PortraitAvatar } from "@/components/avatar/PortraitAvatar";
+import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
 import type { Avatar, AvatarEmotion } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,19 @@ export function AvatarDisplay({
   const mouthH = 4 + lipSyncLevel * 14;
   const mouthW = 10 + lipSyncLevel * 6;
   const showImage = avatar.image && !imgError;
+
+  if (avatar.renderer === "orb") {
+    return (
+      <VoiceMateOrbAvatar
+        size={size}
+        emotion={emotion}
+        speaking={speaking}
+        lipSyncLevel={lipSyncLevel}
+        followCursor={size !== "xs" && size !== "sm"}
+        className={className}
+      />
+    );
+  }
 
   if (!showImage) {
     return (

@@ -27,6 +27,8 @@ export type ConnectorStatus = "connected" | "disconnected" | "error";
 
 export type AvatarGender = "female" | "male";
 
+export type AvatarRenderer = "portrait" | "orb" | "3d";
+
 export interface Avatar {
   id: string;
   name: string;
@@ -38,6 +40,7 @@ export interface Avatar {
   previewLine: string;
   image?: string;
   modelUrl?: string;
+  renderer?: AvatarRenderer;
   accentColor: string;
 }
 

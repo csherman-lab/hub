@@ -311,7 +311,7 @@ export const useHubStore = create<HubState & HubActions>()(
     }),
     {
       name: "hub-storage",
-      version: 6,
+      version: 7,
       migrate: (persisted, fromVersion) => {
         const state = persisted as HubState;
         const migrated = {
@@ -322,6 +322,9 @@ export const useHubStore = create<HubState & HubActions>()(
           hasSeenTips: state.hasSeenTips ?? false,
           agentActivity: state.agentActivity ?? null,
         };
+        if (migrated.selectedAvatarId === "voice-mate") {
+          migrated.selectedAvatarId = "voicemate";
+        }
         // Repair inconsistent state that caused dashboard ↔ onboarding redirect loops
         if (migrated.onboardingComplete && !migrated.selectedAvatarId) {
           migrated.onboardingComplete = false;

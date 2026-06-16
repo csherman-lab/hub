@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { PortraitAvatar } from "@/components/avatar/PortraitAvatar";
+import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import type { Avatar, AvatarEmotion } from "@/types";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,23 @@ export function LiveAvatar({
   use3D = true,
   portrait = true,
 }: LiveAvatarProps) {
+  if (avatar.renderer === "orb") {
+    return (
+      <div className={cn("mx-auto", SIZE_CLASS[size], className)}>
+        <VoiceMateOrbAvatar
+          size={size}
+          emotion={emotion}
+          speaking={speaking}
+          listening={listening}
+          lipSyncLevel={lipSyncLevel}
+          live
+          followCursor={false}
+          className="h-full w-full"
+        />
+      </div>
+    );
+  }
+
   if (use3D && portrait) {
     return (
       <div className={cn("mx-auto", SIZE_CLASS[size], className)}>

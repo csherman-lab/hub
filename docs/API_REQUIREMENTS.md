@@ -45,7 +45,7 @@ XAI_API_KEY=xai-...
 | Jules | `leo` |
 | Aria | `eve` |
 | Marco | `sal` |
-| Voice Mate | `ara` |
+| VoiceMate | `leo` |
 | Luna | `eve` |
 | Alex | `rex` |
 

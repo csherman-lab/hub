@@ -45,17 +45,17 @@ export const AVATARS: Avatar[] = [
     accentColor: "#34C759",
   },
   {
-    id: "voice-mate",
-    name: "Voice Mate",
+    id: "voicemate",
+    name: "VoiceMate",
     gender: "male",
     category: "creative",
-    tagline: "Your voice companion",
+    tagline: "Living voice orb",
     personality:
       "Upbeat, personable, and conversational. Talks like a close friend — casual, encouraging, always engaged.",
     voiceId: "leo",
     previewLine:
-      "Hey! How's it going? I'm Voice Mate — I'm here for calls, quick questions, and just figuring things out together.",
-    image: "/avatars/avatar-voice-mate.png",
+      "Hey! How's it going? I'm VoiceMate — your living voice companion for calls, quick questions, and figuring things out together.",
+    renderer: "orb",
     accentColor: "#AF52DE",
   },
   {
@@ -101,6 +101,9 @@ export const CATEGORY_DESCRIPTIONS: Record<Avatar["category"], string> = {
 };
 
 export function getAvatarById(id: string | null): Avatar | undefined {
+  if (id === "voice-mate") {
+    return AVATARS.find((a) => a.id === "voicemate");
+  }
   return AVATARS.find((a) => a.id === id);
 }
 
