@@ -61,6 +61,8 @@ export const AVATARS: Avatar[] = [
     renderer: "character",
     variant: "marcus",
     accentColor: "#FF8C42",
+    portraitUrl: "/avatars/characters/marcus.webp",
+    modelUrl: "/models/marcus.glb",
   },
   {
     id: "priya",
@@ -76,6 +78,8 @@ export const AVATARS: Avatar[] = [
     renderer: "character",
     variant: "priya",
     accentColor: "#FF6B9D",
+    portraitUrl: "/avatars/characters/priya.webp",
+    modelUrl: "/models/priya.glb",
   },
   {
     id: "elias",
@@ -91,6 +95,8 @@ export const AVATARS: Avatar[] = [
     renderer: "character",
     variant: "elias",
     accentColor: "#6B8F71",
+    portraitUrl: "/avatars/characters/elias.webp",
+    modelUrl: "/models/elias.glb",
   },
 ];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { HumanAvatar } from "@/components/avatar/HumanAvatar";
+import { CharacterModel3D } from "@/components/avatar/CharacterModel3D";
 import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
 import type { Avatar, AvatarEmotion, CharacterVariant, OrbVariant } from "@/types";
 import { cn } from "@/lib/utils";
@@ -66,11 +67,23 @@ export function LivingAvatar({
     return "md";
   };
 
+  if (avatar.renderer === "character" && live && size !== "picker") {
+    return (
+      <CharacterModel3D
+        avatar={avatar}
+        speaking={speaking}
+        listening={listening}
+        className={cn("mx-auto", className)}
+      />
+    );
+  }
+
   const character =
     avatar.renderer === "character" ? (
       <HumanAvatar
         {...common}
         variant={avatar.variant as CharacterVariant}
+        portraitUrl={avatar.portraitUrl}
         size={characterSize()}
         lipSyncLevel={lipSyncLevel}
       />

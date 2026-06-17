@@ -19,7 +19,6 @@ import {
   Video,
   X,
   AlertCircle,
-  Brain,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -37,7 +36,13 @@ import { useHubStore } from "@/lib/store";
 import { useToastStore } from "@/lib/toast-store";
 import { formatGoalLabel } from "@/lib/goal-labels";
 import { cn } from "@/lib/utils";
-import type { ActivityItem, PendingApproval } from "@/types";
+import type { ActivityItem, ConnectorId, PendingApproval } from "@/types";
+import {
+  buildBriefingSnapshot,
+  getBriefingEmptyMessage,
+  type BriefingSection,
+  type IntegrationBriefing,
+} from "@/lib/briefing";
 
 const ACTIVITY_ICONS: Record<ActivityItem["type"], typeof MessageSquare> = {
   draft: FileText,
@@ -137,11 +142,12 @@ export function HomeView() {
   } = useHubStore();
   const pushToast = useToastStore((s) => s.push);
   const avatar = getAvatarById(selectedAvatarId);
-  const [briefing, setBriefing] = useState<string | null>(null);
+  const [integration, setIntegration] = useState<IntegrationBriefing | null>(null);
   const [briefingLoading, setBriefingLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
-  const displayName = agentName || avatar?.name || "Your agent";
+  const avatarName = avatar?.name || "Your agent";
+  const displayName = agentName || avatarName;
   const connectedCount = connectors.filter((c) => c.status === "connected").length;
   const chatMessages = messages.filter((m) => !m.channel || m.channel === "chat");
 
@@ -159,27 +165,48 @@ export function HomeView() {
   const loadBriefing = useCallback(async () => {
     setBriefingLoading(true);
     try {
+      const connectedConnectorIds = connectors
+        .filter((c) => c.status === "connected")
+        .map((c) => c.id)
+        .filter((id): id is ConnectorId => id === "gmail" || id === "google_calendar");
+
       const res = await fetch("/api/briefing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agentName: displayName,
-          goals,
-          memories,
-        }),
+        body: JSON.stringify({ connectedConnectorIds }),
       });
-      const d = await res.json();
-      const text =
-        typeof d.briefing === "string"
-          ? d.briefing
-          : d.briefing?.content || d.briefing?.reasoning_content || null;
-      setBriefing(text);
+      const data = await res.json();
+      setIntegration(data.integration ?? { gmail: null, calendar: null });
     } catch {
-      setBriefing(null);
+      setIntegration({ gmail: null, calendar: null });
     } finally {
       setBriefingLoading(false);
     }
-  }, [displayName, goals, memories]);
+  }, [connectors]);
+
+  const briefingSnapshot = useMemo(
+    () =>
+      buildBriefingSnapshot({
+        goals,
+        memories,
+        skills,
+        pendingApprovals,
+        activities,
+        connectors,
+        chatMessageCount: chatMessages.length,
+        integration: integration ?? undefined,
+      }),
+    [
+      goals,
+      memories,
+      skills,
+      pendingApprovals,
+      activities,
+      connectors,
+      chatMessages.length,
+      integration,
+    ],
+  );
 
   const handleApprove = async (item: PendingApproval) => {
     setApprovingId(item.id);
@@ -345,25 +372,25 @@ export function HomeView() {
       </FadeIn>
 
       <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-        <AnimatedCard delay={0.1} className="flex min-h-[280px] flex-col overflow-hidden bg-white dark:bg-zinc-900">
-          <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+        <AnimatedCard delay={0.1} className="flex min-h-[320px] flex-col overflow-hidden bg-white dark:bg-zinc-900">
+          <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
             <div className="flex items-center gap-2">
               <Sun className="h-4 w-4 text-amber-500" />
-              <h2 className="text-sm font-semibold">Agent briefing</h2>
+              <h2 className="text-sm font-semibold">{avatarName} briefing</h2>
             </div>
             <button
               type="button"
               onClick={loadBriefing}
               disabled={briefingLoading}
-              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-50 dark:hover:bg-zinc-800"
-              aria-label="Refresh briefing"
+              className="rounded-lg border border-zinc-200 p-1.5 text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-600 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+              aria-label={`Refresh ${avatarName} briefing`}
             >
               <RefreshCw className={cn("h-4 w-4", briefingLoading && "animate-spin")} />
             </button>
           </div>
-          <div className="flex flex-1 flex-col p-5">
-            <div className="flex flex-1 gap-4">
-              <div className="shrink-0 self-start">
+          <div className="flex flex-1 flex-col gap-4 p-5">
+            <div className="flex gap-4 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+              <div className="shrink-0 rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <AvatarDisplay
                   avatar={avatar}
                   size="sm"
@@ -371,26 +398,46 @@ export function HomeView() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-            {briefingLoading ? (
-              <div className="space-y-2">
-                <div className="h-3 w-3/4 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
-                <div className="h-3 w-full rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
-                <div className="h-3 w-5/6 rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800" />
-              </div>
-            ) : (
-              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                {briefing ||
-                  `${displayName} is ready. Start a chat or connect apps to get a richer briefing.`}
-              </p>
-            )}
-            {stats.memories > 0 && (
-              <p className="mt-4 flex items-center gap-1.5 text-xs text-zinc-500">
-                <Brain className="h-3.5 w-3.5" />
-                {stats.memories} memor{stats.memories === 1 ? "y" : "ies"} stored
-              </p>
-            )}
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  {displayName === avatarName ? avatar.tagline : `${displayName} · ${avatar.tagline}`}
+                </p>
+                {briefingLoading ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="h-3 w-3/4 rounded-full bg-zinc-200 hub-shimmer dark:bg-zinc-800" />
+                    <div className="h-3 w-full rounded-full bg-zinc-200 hub-shimmer dark:bg-zinc-800" />
+                  </div>
+                ) : briefingSnapshot.hasContent ? (
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                    Here&apos;s what Hub actually knows right now — pulled from your apps,
+                    memory, and activity. Nothing is invented.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                    {getBriefingEmptyMessage(avatarName)}
+                  </p>
+                )}
               </div>
             </div>
+
+            {briefingLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((key) => (
+                  <div
+                    key={key}
+                    className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800"
+                  >
+                    <div className="h-3 w-24 rounded-full bg-zinc-200 hub-shimmer dark:bg-zinc-800" />
+                    <div className="mt-3 h-3 w-full rounded-full bg-zinc-100 hub-shimmer dark:bg-zinc-800/80" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {briefingSnapshot.sections.map((section) => (
+                  <BriefingSectionCard key={section.id} section={section} />
+                ))}
+              </div>
+            )}
           </div>
         </AnimatedCard>
 
@@ -516,6 +563,51 @@ export function HomeView() {
           </AnimatedCard>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BriefingSectionCard({ section }: { section: BriefingSection }) {
+  const hasItems = section.items.length > 0;
+
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {section.title}
+        </h3>
+        {section.href && (
+          <Link
+            href={section.href}
+            className="text-xs font-medium text-blue-500 hover:underline"
+          >
+            Open
+          </Link>
+        )}
+      </div>
+      {hasItems ? (
+        <ul className="mt-3 space-y-2">
+          {section.items.map((item, index) => (
+            <li
+              key={`${section.id}-${index}`}
+              className="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+              {item.href ? (
+                <Link href={item.href} className="hover:text-blue-600 hover:underline">
+                  {item.text}
+                </Link>
+              ) : (
+                <span>{item.text}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-zinc-500">
+          {section.emptyMessage || "Nothing here yet"}
+        </p>
+      )}
     </div>
   );
 }

@@ -71,15 +71,7 @@ const DEFAULT_CONNECTORS: Connector[] = [
   },
 ];
 
-const SEED_ACTIVITIES: ActivityItem[] = [
-  {
-    id: "1",
-    type: "message",
-    title: "Welcome to Hub",
-    detail: "Complete onboarding to start chatting with your agent.",
-    timestamp: new Date().toISOString(),
-  },
-];
+const SEED_ACTIVITIES: ActivityItem[] = [];
 
 export const HUB_STORAGE_KEY = "hub-storage-v2";
 export const HUB_STORAGE_VERSION = 2;

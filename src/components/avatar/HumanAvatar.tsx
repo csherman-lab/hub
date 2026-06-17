@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { AvatarEmotion, CharacterVariant } from "@/types";
 import { CharacterPortrait } from "@/components/avatar/CharacterPortrait";
@@ -11,6 +12,7 @@ export type HumanAvatarSize = "picker" | "xs" | "sm" | "md" | "lg" | "hero";
 
 interface HumanAvatarProps {
   variant?: CharacterVariant;
+  portraitUrl?: string;
   size?: HumanAvatarSize;
   emotion?: AvatarEmotion;
   speaking?: boolean;
@@ -43,6 +45,7 @@ function moodClass(
 
 export function HumanAvatar({
   variant = "marcus",
+  portraitUrl,
   size = "md",
   emotion = "neutral",
   speaking = false,
@@ -52,6 +55,8 @@ export function HumanAvatar({
   ariaLabel = "Character avatar",
 }: HumanAvatarProps) {
   const blinking = useLivingBlink();
+  const [portraitFailed, setPortraitFailed] = useState(false);
+  const usePortrait = Boolean(portraitUrl) && !portraitFailed;
 
   return (
     <div
@@ -59,8 +64,8 @@ export function HumanAvatar({
         "human",
         SIZE_CLASS[size],
         `human--${variant}`,
-        moodClass(speaking, listening, emotion),
-        blinking && "blinking",
+        usePortrait ? "human--photo" : moodClass(speaking, listening, emotion),
+        !usePortrait && blinking && "blinking",
         className,
       )}
       role="img"
@@ -72,7 +77,17 @@ export function HumanAvatar({
       }
     >
       <div className="human-frame">
-        <CharacterPortrait variant={variant} />
+        {usePortrait ? (
+          <img
+            src={portraitUrl}
+            alt=""
+            className="human-photo"
+            draggable={false}
+            onError={() => setPortraitFailed(true)}
+          />
+        ) : (
+          <CharacterPortrait variant={variant} />
+        )}
       </div>
     </div>
   );

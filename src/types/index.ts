@@ -45,6 +45,10 @@ export interface Avatar {
   renderer: AvatarRenderer;
   variant: AvatarVariant;
   accentColor: string;
+  /** High-res 2D portrait (WebP/PNG). Falls back to SVG if missing. */
+  portraitUrl?: string;
+  /** Rigged GLB for voice/video calls. Falls back to portrait/SVG if missing. */
+  modelUrl?: string;
 }
 
 export interface Connector {

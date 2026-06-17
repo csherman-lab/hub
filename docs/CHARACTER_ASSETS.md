@@ -50,8 +50,9 @@ cd ~/hub && git add public/models/jules.glb && git commit -m "Add character" && 
 Place files in `public/models/`:
 
 ```
-public/models/jules.glb      → Jules avatar
-public/models/aria.glb       → Aria avatar
+public/models/marcus.glb     → Marcus avatar
+public/models/priya.glb      → Priya avatar
+public/models/elias.glb      → Elias avatar
 public/models/custom.glb     → set modelUrl in avatars.ts
 ```
 
@@ -71,12 +72,10 @@ If your zip is from [Ready Player Me](https://readyplayer.me/):
 
 ## Until your model is added
 
-Hub shows a **placeholder 3D bust** (colored shoulders + head) so calls still work. Your PNG art is still used on the dashboard and chat.
+Hub shows a **placeholder 3D bust** (colored shoulders + head) on voice/video calls. Add **WebP portraits** in `public/avatars/characters/` for picker and dashboard quality — see [PIXAR_CHARACTERS.md](./PIXAR_CHARACTERS.md).
 
 ## Questions?
 
-Tell me:
-- The **avatar name** it should replace (Jules, custom, etc.)
-- The **filename** after you add it to `public/models/`
-
-I can wire it up in code once the file is in the repo.
+Tell us:
+- The **avatar name** (Marcus, Priya, Elias, or custom)
+- The **filenames** after you add them to `public/avatars/characters/` and/or `public/models/`

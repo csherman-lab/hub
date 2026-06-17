@@ -50,8 +50,8 @@ test.describe("Hub full flow", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          briefing: "Good morning! Your agent is ready.",
-          mode: "mock",
+          integration: { gmail: null, calendar: null },
+          mode: "factual",
         }),
       });
     });
@@ -84,7 +84,7 @@ test.describe("Hub full flow", () => {
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening)/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Agent briefing" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /briefing/i })).toBeVisible();
   });
 
   test("onboarding meet shortcuts complete setup", async ({ page }) => {
