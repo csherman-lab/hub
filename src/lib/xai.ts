@@ -72,6 +72,7 @@ export async function grokChat(params: {
   model?: string;
   tools?: unknown[];
   maxTokens?: number;
+  temperature?: number;
 }) {
   const body: Record<string, unknown> = {
     model: params.model || DEFAULT_MODEL,
@@ -79,7 +80,7 @@ export async function grokChat(params: {
       { role: "system", content: params.systemPrompt },
       ...params.messages,
     ],
-    temperature: 0.7,
+    temperature: params.temperature ?? 0.7,
     max_tokens: params.maxTokens ?? 512,
   };
 

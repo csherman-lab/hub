@@ -13,7 +13,7 @@ import { previewAvatarVoice, stopSpeaking } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import type { Avatar, AvatarCategory } from "@/types";
 
-const CATEGORIES: AvatarCategory[] = ["orbs", "glyphs", "wisps"];
+const CATEGORIES: AvatarCategory[] = ["design", "characters"];
 
 interface AvatarPickerProps {
   selectedId: string | null;
@@ -28,7 +28,7 @@ export function AvatarPicker({
 }: AvatarPickerProps) {
   const selectedAvatar = AVATARS.find((a) => a.id === selectedId);
   const [activeCategory, setActiveCategory] = useState<AvatarCategory>(
-    selectedAvatar?.category ?? "orbs",
+    selectedAvatar?.category ?? "design",
   );
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const list = showAll ? AVATARS : getAvatarsByCategory(activeCategory);

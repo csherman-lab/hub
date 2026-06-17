@@ -63,6 +63,8 @@ export interface ChatRequest {
   tavilyKey?: string;
   /** JPEG data URL from video call — enables Grok vision */
   userImage?: string;
+  /** voice or video enables fast spoken replies */
+  channel?: "chat" | "voice" | "video";
 }
 
 export interface ChatResult {
@@ -85,6 +87,18 @@ export type StreamEvent =
 type ToolEventHandler = (event: { type: "start" | "done"; tool: string; label?: string }) => void;
 
 function buildSystemPrompt(req: ChatRequest): string {
+  const isLiveCall = req.channel === "voice" || req.channel === "video";
+
+  const voiceRules = isLiveCall
+    ? `
+You are on a live ${req.channel} call. Reply like natural speech.
+Use 1 to 2 short sentences only. No lists, markdown, or long explanations.
+Sound conversational and responsive. Jump straight to the point.
+`
+    : `
+Keep replies concise (1 to 3 sentences) unless the user asks for detail.
+`;
+
   return `You are ${req.agentName || "an AI assistant"} on Hub.
 ${req.personality || ""}
 
@@ -100,7 +114,7 @@ ${buildAgentContext({
 You have tools to read Gmail, read Calendar, search the web, remember facts, and create drafts.
 Use tools when you need live data or to take action.
 For email and calendar drafts, use draft_email or draft_calendar_event tools. Never claim you sent or booked without using those tools.
-Keep replies concise (1 to 3 sentences) unless the user asks for detail.
+${voiceRules}
 Match the user's energy. Be warm and capable.
 Never use dashes or hyphens in replies. Use commas instead.`;
 }
@@ -198,16 +212,24 @@ export async function runChat(req: ChatRequest): Promise<ChatResult> {
     return { ...mock, mode: "mock" };
   }
 
+  const isLiveCall = req.channel === "voice" || req.channel === "video";
+  const voiceMaxTokens = 100;
+  const visionMaxTokens = 140;
+
   if (req.userImage) {
     const visionPrompt = `${buildSystemPrompt(req)}
 
 You are on a live video call. You can see the user through their camera in the attached image.
-Describe what you notice naturally when relevant (expression, setting, gestures). Keep replies concise and conversational. Never use dashes or hyphens in replies; use commas instead.`;
+Describe what you notice naturally when relevant (expression, setting, gestures). Keep replies to 1 or 2 short spoken sentences. Never use dashes or hyphens in replies; use commas instead.`;
 
     const response = await grokChat({
       apiKey,
       systemPrompt: visionPrompt,
       messages: [
+        ...(req.history || []).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
         {
           role: "user",
           content: [
@@ -220,12 +242,34 @@ Describe what you notice naturally when relevant (expression, setting, gestures)
         },
       ],
       model: "grok-2-vision-1212",
-      maxTokens: 400,
+      maxTokens: visionMaxTokens,
     });
 
     const reply =
       extractGrokContent(response) ||
-      "I can see you! Let me know what you'd like to talk about.";
+      "I can see you! What would you like to talk about?";
+    return sideEffectsToResult({}, reply, "grok");
+  }
+
+  if (isLiveCall) {
+    const systemPrompt = buildSystemPrompt(req);
+    const response = await grokChat({
+      apiKey,
+      systemPrompt,
+      messages: [
+        ...(req.history || []).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        { role: "user", content: req.message },
+      ],
+      maxTokens: voiceMaxTokens,
+      temperature: 0.75,
+    });
+
+    const reply =
+      extractGrokContent(response) ||
+      "I'm listening. What would you like to talk about?";
     return sideEffectsToResult({}, reply, "grok");
   }
 

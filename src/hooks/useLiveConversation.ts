@@ -16,9 +16,9 @@ export type CallPhase =
   | "muted"
   | "error";
 
-const CONNECT_DELAY_MS = 500;
-const RESTART_DELAY_MS = 300;
-const UTTERANCE_END_MS = 850;
+const CONNECT_DELAY_MS = 250;
+const RESTART_DELAY_MS = 200;
+const UTTERANCE_END_MS = 600;
 
 function getSpeechRecognition() {
   if (typeof window === "undefined") return null;
@@ -135,6 +135,7 @@ export function useLiveConversation({
             personality: avatar.personality,
             agentName: agentName || avatar.name,
             history,
+            channel,
             goals,
             skills,
             memories,
@@ -159,7 +160,7 @@ export function useLiveConversation({
 
         setPhase("speaking");
         setSpeakingState(true);
-        await speakWithGrok(reply, avatar.voiceId);
+        await speakWithGrok(reply, avatar.voiceId, { fast: true });
         setSpeakingState(false);
         setLipLevel(0);
         setEmotion("happy");
@@ -325,7 +326,7 @@ export function useLiveConversation({
     setPhase("speaking");
     setSpeakingState(true);
     setEmotion("happy");
-    await speakWithGrok(greeting, avatar.voiceId);
+    await speakWithGrok(greeting, avatar.voiceId, { fast: true });
     setSpeakingState(false);
     setLipLevel(0);
   }, [avatar, agentName, setEmotion, setSpeakingState]);

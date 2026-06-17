@@ -1,9 +1,8 @@
 "use client";
 
-import { GlyphAvatar } from "@/components/avatar/GlyphAvatar";
+import { HumanAvatar } from "@/components/avatar/HumanAvatar";
 import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
-import { WispAvatar } from "@/components/avatar/WispAvatar";
-import type { Avatar, AvatarEmotion, GlyphVariant, OrbVariant, WispVariant } from "@/types";
+import type { Avatar, AvatarEmotion, CharacterVariant, OrbVariant } from "@/types";
 import { cn } from "@/lib/utils";
 
 export type LivingAvatarSize =
@@ -54,62 +53,46 @@ export function LivingAvatar({
     className: cn(size === "picker" ? "mx-auto" : "h-full w-full", className),
   };
 
-  const character = (() => {
-    switch (avatar.renderer) {
-      case "glyph":
-        return (
-          <GlyphAvatar
-            {...common}
-            variant={avatar.variant as GlyphVariant}
-            size={
-              size === "picker" || size === "xs"
-                ? size === "picker"
-                  ? "picker"
-                  : "xs"
-                : size === "hero" || size === "lg" || size === "xl"
-                  ? "hero"
-                  : "md"
-            }
-          />
-        );
-      case "wisp":
-        return (
-          <WispAvatar
-            {...common}
-            variant={avatar.variant as WispVariant}
-            size={
-              size === "picker" || size === "xs"
-                ? size === "picker"
-                  ? "picker"
-                  : "xs"
-                : size === "hero" || size === "lg" || size === "xl"
-                  ? "hero"
-                  : "md"
-            }
-          />
-        );
-      default:
-        return (
-          <VoiceMateOrbAvatar
-            {...common}
-            variant={avatar.variant as OrbVariant}
-            size={
-              size === "picker"
-                ? "picker"
-                : size === "hero"
-                  ? "hero"
-                  : size === "lg" || size === "xl"
-                    ? "lg"
-                    : size
-            }
-            lipSyncLevel={lipSyncLevel}
-            followCursor={followCursor ?? false}
-            interactive={interactive}
-            live={live}
-          />
-        );
-    }
-  })();
+  const characterSize = ():
+    | "picker"
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "hero" => {
+    if (size === "picker") return "picker";
+    if (size === "xs" || size === "sm") return size;
+    if (size === "hero" || size === "lg" || size === "xl") return "hero";
+    return "md";
+  };
+
+  const character =
+    avatar.renderer === "character" ? (
+      <HumanAvatar
+        {...common}
+        variant={avatar.variant as CharacterVariant}
+        size={characterSize()}
+        lipSyncLevel={lipSyncLevel}
+      />
+    ) : (
+      <VoiceMateOrbAvatar
+        {...common}
+        variant={avatar.variant as OrbVariant}
+        size={
+          size === "picker"
+            ? "picker"
+            : size === "hero"
+              ? "hero"
+              : size === "lg" || size === "xl"
+                ? "lg"
+                : size
+        }
+        lipSyncLevel={lipSyncLevel}
+        followCursor={followCursor ?? false}
+        interactive={interactive}
+        live={live}
+      />
+    );
 
   if (size === "picker") {
     return (
@@ -120,7 +103,16 @@ export function LivingAvatar({
   }
 
   if (size === "hero" || size === "lg" || size === "xl") {
-    return <div className={cn("mx-auto", HERO_WRAP[size === "xl" ? "xl" : size === "lg" ? "lg" : "hero"])}>{character}</div>;
+    return (
+      <div
+        className={cn(
+          "mx-auto",
+          HERO_WRAP[size === "xl" ? "xl" : size === "lg" ? "lg" : "hero"],
+        )}
+      >
+        {character}
+      </div>
+    );
   }
 
   return character;

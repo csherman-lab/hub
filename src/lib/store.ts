@@ -17,6 +17,7 @@ import type {
   GrokStatus,
 } from "@/types";
 import { generateId } from "@/lib/utils";
+import { AVATARS } from "@/lib/avatars";
 
 const DEFAULT_CONNECTORS: Connector[] = [
   {
@@ -81,7 +82,7 @@ const SEED_ACTIVITIES: ActivityItem[] = [
 ];
 
 export const HUB_STORAGE_KEY = "hub-storage-v2";
-export const HUB_STORAGE_VERSION = 1;
+export const HUB_STORAGE_VERSION = 2;
 
 interface HubActions {
   setTheme: (theme: ThemeMode) => void;
@@ -176,11 +177,25 @@ function migrateHubStorage(persisted: unknown, fromVersion: number): HubState {
     "voice-mate": "voicemate",
     luna: "pulse",
     alex: "ember",
-    aria: "prism",
-    jules: "muse",
-    marco: "sage",
+    aria: "priya",
+    jules: "priya",
+    marco: "elias",
+    prism: "priya",
+    flux: "marcus",
+    sage: "elias",
+    muse: "priya",
+    haven: "elias",
+    drift: "marcus",
   };
   if (migrated.selectedAvatarId) {
+    migrated.selectedAvatarId =
+      legacyAvatarIds[migrated.selectedAvatarId] ?? migrated.selectedAvatarId;
+    if (!AVATARS.some((a) => a.id === migrated.selectedAvatarId)) {
+      migrated.selectedAvatarId = "voicemate";
+    }
+  }
+
+  if (fromVersion < 2 && migrated.selectedAvatarId) {
     migrated.selectedAvatarId =
       legacyAvatarIds[migrated.selectedAvatarId] ?? migrated.selectedAvatarId;
   }

@@ -1,3 +1,5 @@
+import { prepareSpeechText } from "@/lib/voice-utils";
+
 let currentAudio: HTMLAudioElement | null = null;
 let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
@@ -48,21 +50,24 @@ export function isSpeaking(): boolean {
 export async function speakWithGrok(
   text: string,
   voiceId: string,
+  options?: { fast?: boolean },
 ): Promise<boolean> {
   stopSpeaking();
+  const speechText = prepareSpeechText(text, options?.fast ?? false);
 
   try {
     const res = await fetch("/api/voice/speak", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voiceId }),
+      body: JSON.stringify({ text: speechText, voiceId }),
     });
 
-    if (!res.ok) return speakWithBrowser(text);
+    if (!res.ok) return speakWithBrowser(speechText, options?.fast);
 
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     currentAudio = new Audio(url);
+    currentAudio.playbackRate = options?.fast ? 1.12 : 1;
 
     try {
       audioContext = audioContext || new AudioContext();
@@ -89,7 +94,7 @@ export async function speakWithGrok(
   }
 }
 
-export function speakWithBrowser(text: string): Promise<boolean> {
+export function speakWithBrowser(text: string, fast = false): Promise<boolean> {
   return new Promise((resolve) => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
       resolve(false);
@@ -97,7 +102,7 @@ export function speakWithBrowser(text: string): Promise<boolean> {
     }
     stopSpeaking();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.92;
+    utterance.rate = fast ? 1.08 : 0.92;
     utterance.onstart = () => {
       let t = 0;
       const pulse = () => {
