@@ -1,10 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { HumanAvatar } from "@/components/avatar/HumanAvatar";
-import { CharacterModel3D } from "@/components/avatar/CharacterModel3D";
 import { VoiceMateOrbAvatar } from "@/components/avatar/VoiceMateOrbAvatar";
 import type { Avatar, AvatarEmotion, CharacterVariant, OrbVariant } from "@/types";
 import { cn } from "@/lib/utils";
+
+const CharacterModel3D = dynamic(
+  () =>
+    import("@/components/avatar/CharacterModel3D").then((mod) => mod.CharacterModel3D),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-[min(52vh,420px)] w-full max-w-lg animate-pulse rounded-3xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900"
+        aria-hidden
+      />
+    ),
+  },
+);
 
 export type LivingAvatarSize =
   | "picker"

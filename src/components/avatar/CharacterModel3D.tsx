@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls, useGLTF } from "@react-three/drei";
+import { ContactShadows, OrbitControls, useGLTF } from "@react-three/drei";
 import type { Avatar } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -94,7 +94,6 @@ function CharacterScene({
         blur={2.4}
         far={4}
       />
-      <Environment preset="city" />
       <OrbitControls
         enablePan={false}
         enableZoom={false}
