@@ -1,0 +1,126 @@
+/* Pixar-style character portraits */
+
+.human {
+  --human-size: 200px;
+  position: relative;
+  width: var(--human-size);
+  height: var(--human-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.human-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.14),
+    0 0 0 3px rgba(255, 255, 255, 0.65),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease;
+}
+
+.human.listening .human-frame {
+  animation: humanBreathe 1.8s ease-in-out infinite;
+}
+
+.human.speaking .human-frame {
+  animation: humanSpeak 0.7s ease-in-out infinite;
+}
+
+.human.happy .human-frame {
+  transform: scale(1.02);
+}
+
+.human.thinking .human-frame {
+  transform: translateY(2px) scale(0.98);
+}
+
+.human.blinking .char-eye {
+  transform: scaleY(0.12);
+  transform-origin: center;
+  transition: transform 0.1s ease;
+}
+
+.char-eye {
+  transition: transform 0.1s ease;
+  transform-origin: center;
+}
+
+.char-mouth {
+  transition: transform 0.12s ease;
+  transform-origin: center;
+}
+
+.human--picker {
+  --human-size: 72px;
+}
+
+.human--xs,
+.human--sm {
+  --human-size: 64px;
+}
+
+.human--md {
+  --human-size: 160px;
+}
+
+.human--hero {
+  --human-size: min(280px, 52vw);
+}
+
+.human--lg {
+  --human-size: 320px;
+}
+
+@keyframes humanBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes humanSpeak {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.human--photo .human-frame {
+  animation: humanPhotoDrift 8s ease-in-out infinite;
+}
+
+.human-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  transform: scale(1.02);
+}
+
+@keyframes humanPhotoDrift {
+  0%,
+  100% {
+    transform: scale(1.02);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .human.listening .human-frame,
+  .human.speaking .human-frame,
+  .human--photo .human-frame {
+    animation: none;
+  }
+}
